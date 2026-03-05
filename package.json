@@ -1,0 +1,53 @@
+{
+  "name": "vscode-arx",
+  "displayName": "Arx",
+  "description": "Highlight-only VS Code extension for the Arx programming language.",
+  "version": "0.1.0",
+  "publisher": "TODO_PUBLISHER",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TODO_ORG/vscode-arx.git"
+  },
+  "homepage": "https://github.com/TODO_ORG/vscode-arx#readme",
+  "bugs": {
+    "url": "https://github.com/TODO_ORG/vscode-arx/issues"
+  },
+  "icon": "images/icon.png",
+  "categories": [
+    "Programming Languages"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "activationEvents": [
+    "onLanguage:arx"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "arx",
+        "aliases": [
+          "Arx",
+          "arx"
+        ],
+        "extensions": [
+          ".arx"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "arx",
+        "scopeName": "source.arx",
+        "path": "./syntaxes/arx.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "sync:syntax": "bash ./scripts/sync-syntax.sh",
+    "build:grammar": "node ./scripts/build-grammar.mjs --write",
+    "check:grammar": "node ./scripts/build-grammar.mjs --check"
+  }
+}

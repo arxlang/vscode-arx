@@ -1,0 +1,126 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Arx",
+  "scopeName": "source.arx",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.arx",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.arx",
+          "match": "\"(?:\\\\.|[^\"\\\\\\n])*\""
+        },
+        {
+          "name": "string.quoted.single.arx",
+          "match": "'(?:\\\\.|[^'\\\\\\n])*'"
+        },
+        {
+          "name": "invalid.illegal.unterminated-string.arx",
+          "match": "\"(?:\\\\.|[^\"\\\\\\n])*$"
+        },
+        {
+          "name": "invalid.illegal.unterminated-string.arx",
+          "match": "'(?:\\\\.|[^'\\\\\\n])*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.arx",
+          "match": "\\b(?:const|else|extern|fn|for|if|in|return|then|var)\\b"
+        },
+        {
+          "name": "keyword.other.contextual.arx",
+          "match": "(?!)"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.arx",
+          "match": "\\b(?:true|false|null)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.decimal.arx",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.float.decimal.arx",
+          "match": "(?<![\\w.])\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.float.decimal.arx",
+          "match": "\\b\\d+\\.(?!\\.)"
+        },
+        {
+          "name": "constant.numeric.integer.decimal.arx",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.arx",
+          "match": "(?:==|!=|<=|>=|->)"
+        },
+        {
+          "name": "keyword.operator.arx",
+          "match": "[=<>+\\-*/]"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.arx",
+          "match": "[:,;]"
+        },
+        {
+          "name": "punctuation.section.brackets.begin.arx",
+          "match": "[({[]"
+        },
+        {
+          "name": "punctuation.section.brackets.end.arx",
+          "match": "[)}\\]]"
+        }
+      ]
+    }
+  }
+}
