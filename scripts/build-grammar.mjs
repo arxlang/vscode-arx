@@ -31,9 +31,20 @@ function wordRegex(words) {
   return `\\b(?:${escaped.join("|")})\\b`;
 }
 
+function alternationRegex(words) {
+  if (!words.length) {
+    return "(?!)";
+  }
+
+  const escaped = words.map((item) => escapeRegex(item));
+  return `(?:${escaped.join("|")})`;
+}
+
 function buildGrammar(spec) {
   const reservedKeywords = [...(spec.keywords?.reserved ?? [])].sort();
   const contextualKeywords = [...(spec.keywords?.contextual ?? [])].sort();
+  const identifierPattern = spec.identifiers?.pattern ?? "[A-Za-z_][A-Za-z0-9_]*";
+  const reservedKeywordAlternation = alternationRegex(reservedKeywords);
 
   // TODO(ARX-VSCODE-LITERALS-001): upstream manifest currently has [] literals.
   // Keep a conservative fallback for editor highlighting only.
@@ -75,10 +86,12 @@ function buildGrammar(spec) {
     patterns: [
       { include: "#comments" },
       { include: "#strings" },
+      { include: "#declarations" },
       { include: "#keywords" },
       { include: "#constants" },
       { include: "#numbers" },
       { include: "#operators" },
+      { include: "#functions" },
       { include: "#punctuation" }
     ],
     repository: {
@@ -107,6 +120,25 @@ function buildGrammar(spec) {
           {
             name: "invalid.illegal.unterminated-string.arx",
             match: "'(?:\\\\.|[^'\\\\\\n])*$"
+          }
+        ]
+      },
+      declarations: {
+        patterns: [
+          {
+            name: "meta.function.definition.arx",
+            match: `\\b(fn)\\s+(${identifierPattern})\\b`,
+            captures: {
+              "1": { name: "keyword.control.arx" },
+              "2": { name: "entity.name.function.arx" }
+            }
+          },
+          {
+            name: "meta.variable.declaration.arx",
+            match: `\\b(?:const|var)\\s+(${identifierPattern})\\b`,
+            captures: {
+              "1": { name: "variable.other.definition.arx" }
+            }
           }
         ]
       },
@@ -159,6 +191,14 @@ function buildGrammar(spec) {
           {
             name: "keyword.operator.arx",
             match: singleOpCharClass
+          }
+        ]
+      },
+      functions: {
+        patterns: [
+          {
+            name: "support.function.arx",
+            match: `\\b(?!${reservedKeywordAlternation}\\b)(${identifierPattern})(?=\\s*\\()`
           }
         ]
       },

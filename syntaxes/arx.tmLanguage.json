@@ -10,6 +10,9 @@
       "include": "#strings"
     },
     {
+      "include": "#declarations"
+    },
+    {
       "include": "#keywords"
     },
     {
@@ -20,6 +23,9 @@
     },
     {
       "include": "#operators"
+    },
+    {
+      "include": "#functions"
     },
     {
       "include": "#punctuation"
@@ -51,6 +57,31 @@
         {
           "name": "invalid.illegal.unterminated-string.arx",
           "match": "'(?:\\\\.|[^'\\\\\\n])*$"
+        }
+      ]
+    },
+    "declarations": {
+      "patterns": [
+        {
+          "name": "meta.function.definition.arx",
+          "match": "\\b(fn)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.arx"
+            },
+            "2": {
+              "name": "entity.name.function.arx"
+            }
+          }
+        },
+        {
+          "name": "meta.variable.declaration.arx",
+          "match": "\\b(?:const|var)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "captures": {
+            "1": {
+              "name": "variable.other.definition.arx"
+            }
+          }
         }
       ]
     },
@@ -103,6 +134,14 @@
         {
           "name": "keyword.operator.arx",
           "match": "[=<>+\\-*/]"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.arx",
+          "match": "\\b(?!(?:const|else|extern|fn|for|if|in|return|then|var)\\b)((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*\\()"
         }
       ]
     },
