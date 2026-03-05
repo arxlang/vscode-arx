@@ -38,6 +38,19 @@ if ! command -v npx >/dev/null 2>&1; then
   exit 2
 fi
 
+load_env_file() {
+  local env_file="$1"
+  if [[ -f "$env_file" ]]; then
+    echo "Loading environment from $env_file"
+    set -a
+    # shellcheck disable=SC1090
+    source "$env_file"
+    set +a
+  fi
+}
+
+load_env_file "$ROOT_DIR/.env"
+
 assert_publish_metadata() {
   local publisher
   local repo_url
