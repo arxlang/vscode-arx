@@ -43,11 +43,17 @@ npm run sync:syntax
 npm run check:grammar
 ```
 
-By default, `sync:syntax` copies from `../arx/syntax/arx.syntax.json`.
-You can override the source path:
+By default, `sync:syntax` clones:
+
+- `https://github.com/arxlang/arx.git`
+- branch/ref `main`
+
+You can override source repo/ref:
 
 ```bash
-ARX_SYNTAX_SOURCE=/absolute/path/to/arx.syntax.json npm run sync:syntax
+ARX_REPO_URL=https://github.com/arxlang/arx.git \
+ARX_REPO_REF=main \
+npm run sync:syntax
 ```
 
 ## Updating Keywords / Operators
@@ -57,6 +63,42 @@ ARX_SYNTAX_SOURCE=/absolute/path/to/arx.syntax.json npm run sync:syntax
 3. Commit both:
    - `syntax/arx.syntax.json`
    - `syntaxes/arx.tmLanguage.json`
+
+## Build and Publish
+
+Build a VSIX:
+
+```bash
+npm run build:vsix
+```
+
+Publish both Marketplace and Open VSX:
+
+```bash
+export VSCE_PAT="***"
+export OVSX_PAT="***"
+npm run publish:all
+```
+
+Marketplace only (bump patch):
+
+```bash
+export VSCE_PAT="***"
+bash ./scripts/publish.sh --marketplace --bump patch --no-dependencies
+```
+
+## CI (GitHub Actions)
+
+This repo includes `.github/workflows/main.yaml` with:
+
+1. PR branch freshness check.
+2. Script syntax + grammar sync validation.
+3. Optional VSIX packaging and artifact upload.
+
+The VSIX packaging step is skipped until `package.json` placeholders are replaced:
+
+- `publisher`
+- `repository.url`
 
 ## Notes and TODO Defaults
 

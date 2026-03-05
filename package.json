@@ -48,6 +48,8 @@
   "scripts": {
     "sync:syntax": "bash ./scripts/sync-syntax.sh",
     "build:grammar": "node ./scripts/build-grammar.mjs --write",
-    "check:grammar": "node ./scripts/build-grammar.mjs --check"
+    "check:grammar": "node ./scripts/build-grammar.mjs --check",
+    "build:vsix": "bash ./scripts/build.sh --no-dependencies",
+    "publish:all": "bash ./scripts/publish.sh --all --no-dependencies"
   }
 }

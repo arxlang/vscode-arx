@@ -1,0 +1,108 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    concurrency:
+      group: ci-check-branch-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          fetch-depth: 0
+
+      - name: Check if the PR branch is updated
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: osl-incubator/gh-check-pr-is-updated@1.0.0
+        with:
+          remote_branch: origin/main
+          pr_sha: ${{ github.event.pull_request.head.sha }}
+
+  validate:
+    name: Validate Grammar and Scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Show tool versions
+        run: |
+          node --version
+          npm --version
+
+      - name: Validate shell scripts
+        run: |
+          bash -n scripts/sync-syntax.sh
+          bash -n scripts/build.sh
+          bash -n scripts/publish.sh
+
+      - name: Check generated grammar is in sync
+        run: npm run check:grammar
+
+  package-vsix:
+    name: Package VSIX (when metadata is ready)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: validate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check publish metadata readiness
+        id: meta
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const pkg = require('./package.json');
+          const publisher = String(pkg.publisher || '');
+          const repoUrl = String((pkg.repository || {}).url || '');
+          const ready =
+            publisher.length > 0 &&
+            !publisher.startsWith('TODO_') &&
+            repoUrl.length > 0 &&
+            !repoUrl.includes('TODO_');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `ready=${ready}\n`);
+          NODE
+
+      - name: Build VSIX
+        if: steps.meta.outputs.ready == 'true'
+        run: bash ./scripts/build.sh --no-dependencies --out-dir dist
+
+      - name: Skip VSIX build (TODO metadata)
+        if: steps.meta.outputs.ready != 'true'
+        run: echo "Skipping VSIX packaging until package.json publisher/repository placeholders are replaced."
+
+      - name: Upload VSIX artifact
+        if: steps.meta.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-arx-vsix
+          path: dist/*.vsix
+          if-no-files-found: error

@@ -2,19 +2,26 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SOURCE_CANDIDATE="${ARX_SYNTAX_SOURCE:-../arx/syntax/arx.syntax.json}"
+ARX_REPO_URL="${ARX_REPO_URL:-https://github.com/arxlang/arx.git}"
+ARX_REPO_REF="${ARX_REPO_REF:-main}"
+TMP_DIR="$(mktemp -d)"
+CLONE_DIR="$TMP_DIR/arx"
+SOURCE_PATH="$CLONE_DIR/syntax/arx.syntax.json"
 
-if [[ -f "$SOURCE_CANDIDATE" ]]; then
-  SOURCE_PATH="$SOURCE_CANDIDATE"
-elif [[ -f "$ROOT_DIR/$SOURCE_CANDIDATE" ]]; then
-  SOURCE_PATH="$ROOT_DIR/$SOURCE_CANDIDATE"
-else
-  echo "Could not find source manifest: $SOURCE_CANDIDATE" >&2
-  echo "Set ARX_SYNTAX_SOURCE to the path of arx.syntax.json." >&2
+cleanup() {
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
+
+echo "Cloning $ARX_REPO_URL (ref: $ARX_REPO_REF) into a temporary directory..."
+git clone --depth 1 --branch "$ARX_REPO_REF" "$ARX_REPO_URL" "$CLONE_DIR"
+
+if [[ ! -f "$SOURCE_PATH" ]]; then
+  echo "Could not find syntax manifest at $SOURCE_PATH" >&2
   exit 1
 fi
 
 cp "$SOURCE_PATH" "$ROOT_DIR/syntax/arx.syntax.json"
 node "$ROOT_DIR/scripts/build-grammar.mjs" --write
 
-echo "Synced syntax manifest from $SOURCE_PATH"
+echo "Synced syntax manifest from $ARX_REPO_URL@$ARX_REPO_REF"
