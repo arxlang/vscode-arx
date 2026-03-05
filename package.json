@@ -7,11 +7,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TODO_ORG/vscode-arx.git"
+    "url": "https://github.com/arxlang/vscode-arx.git"
   },
-  "homepage": "https://github.com/TODO_ORG/vscode-arx#readme",
+  "homepage": "https://github.com/arxlang/vscode-arx#readme",
   "bugs": {
-    "url": "https://github.com/TODO_ORG/vscode-arx/issues"
+    "url": "https://github.com/arxlang/vscode-arx/issues"
   },
   "icon": "images/icon.png",
   "categories": [
