@@ -169,6 +169,35 @@ build_vsix() {
   scripts/build.sh "${args[@]}"
 }
 
+run_marketplace_publish() {
+  local output=""
+  local status=0
+
+  set +e
+  output="$("$@" 2>&1)"
+  status=$?
+  set -e
+
+  if [[ -n "$output" ]]; then
+    if [[ "$status" -eq 0 ]]; then
+      printf '%s\n' "$output"
+    else
+      printf '%s\n' "$output" >&2
+    fi
+  fi
+
+  if [[ "$status" -eq 0 ]]; then
+    return 0
+  fi
+
+  if [[ "$output" == *"already exists"* ]]; then
+    echo "Marketplace package already exists; skipping and continuing." >&2
+    return 0
+  fi
+
+  return "$status"
+}
+
 if [[ -z "$vsix_path" && ( "$do_openvsx" -eq 1 || ( "$do_marketplace" -eq 1 && -z "$bump" ) ) ]]; then
   vsix_path="$(build_vsix)"
 fi
@@ -183,9 +212,9 @@ if [[ "$do_marketplace" -eq 1 ]]; then
       pub_args+=(--no-dependencies)
     fi
 
-    npx --yes @vscode/vsce publish "$bump" -p "$VSCE_PAT" "${pub_args[@]}"
+    run_marketplace_publish npx --yes @vscode/vsce publish "$bump" -p "$VSCE_PAT" "${pub_args[@]}"
   else
-    npx --yes @vscode/vsce publish --packagePath "$vsix_path" -p "$VSCE_PAT"
+    run_marketplace_publish npx --yes @vscode/vsce publish --packagePath "$vsix_path" -p "$VSCE_PAT"
   fi
 fi
 

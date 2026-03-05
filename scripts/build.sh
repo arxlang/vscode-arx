@@ -60,7 +60,7 @@ fi
 
 mkdir -p "$out_dir"
 
-npm run check:grammar
+npm run check:grammar >&2
 
 pkg_name="$(node -p "require('./package.json').name")"
 pkg_version="$(node -p "require('./package.json').version")"
@@ -80,7 +80,7 @@ if [[ "$no_deps" -eq 1 ]]; then
   args+=(--no-dependencies)
 fi
 
-npx --yes @vscode/vsce "${args[@]}"
+npx --yes @vscode/vsce "${args[@]}" >&2
 
 if [[ ! -f "$vsix_path" ]]; then
   echo "Build finished but no .vsix found at $vsix_path" >&2
