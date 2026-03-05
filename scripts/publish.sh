@@ -132,6 +132,16 @@ if [[ -n "$vsix_path" && ! -f "$vsix_path" ]]; then
   exit 2
 fi
 
+if [[ "$do_marketplace" -eq 1 && -z "${VSCE_PAT:-}" ]]; then
+  echo "VSCE_PAT is required for Marketplace publishing." >&2
+  exit 2
+fi
+
+if [[ "$do_openvsx" -eq 1 && -z "${OVSX_PAT:-}" ]]; then
+  echo "OVSX_PAT is required for Open VSX publishing." >&2
+  exit 2
+fi
+
 assert_publish_metadata
 npm run check:grammar
 
@@ -151,11 +161,6 @@ if [[ -z "$vsix_path" && ( "$do_openvsx" -eq 1 || ( "$do_marketplace" -eq 1 && -
 fi
 
 if [[ "$do_marketplace" -eq 1 ]]; then
-  if [[ -z "${VSCE_PAT:-}" ]]; then
-    echo "VSCE_PAT is required for Marketplace publishing." >&2
-    exit 2
-  fi
-
   if [[ -n "$bump" ]]; then
     pub_args=()
     if [[ "$pre_release" -eq 1 ]]; then
@@ -172,11 +177,6 @@ if [[ "$do_marketplace" -eq 1 ]]; then
 fi
 
 if [[ "$do_openvsx" -eq 1 ]]; then
-  if [[ -z "${OVSX_PAT:-}" ]]; then
-    echo "OVSX_PAT is required for Open VSX publishing." >&2
-    exit 2
-  fi
-
   if [[ "$ensure_namespace" -eq 1 ]]; then
     if [[ -z "${PUBLISHER:-}" ]]; then
       echo "PUBLISHER is required to create an Open VSX namespace." >&2

@@ -14,6 +14,14 @@
     "url": "https://github.com/arxlang/vscode-arx/issues"
   },
   "icon": "images/icon.png",
+  "files": [
+    "language-configuration.json",
+    "syntaxes/**",
+    "syntax/arx.syntax.json",
+    "images/icon.png",
+    "README.md",
+    "LICENSE"
+  ],
   "categories": [
     "Programming Languages"
   ],
