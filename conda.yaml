@@ -1,0 +1,8 @@
+name: arx-vscode
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - pip
+  - pip:
+    - pre-commit

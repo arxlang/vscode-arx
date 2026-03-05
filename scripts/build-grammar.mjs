@@ -13,6 +13,11 @@ function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function escapeCharClass(text) {
+  // Escape only characters that are special inside [...].
+  return text.replace(/[[\]\\^-]/g, "\\$&");
+}
+
 function unique(values) {
   return [...new Set(values)];
 }
@@ -47,11 +52,11 @@ function buildGrammar(spec) {
   );
 
   const singleOpCharClass = opSingles.length
-    ? `[${opSingles.map((item) => escapeRegex(item)).join("")}]`
+    ? `[${opSingles.map((item) => escapeCharClass(item)).join("")}]`
     : "(?!)";
 
   const punctuationCharClass = punctuationSingles.length
-    ? `[${punctuationSingles.map((item) => escapeRegex(item)).join("")}]`
+    ? `[${punctuationSingles.map((item) => escapeCharClass(item)).join("")}]`
     : "(?!)";
 
   // TODO(ARX-VSCODE-OPS-001): confirm multi-char operators in upstream spec.

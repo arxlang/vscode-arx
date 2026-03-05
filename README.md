@@ -100,6 +100,29 @@ The VSIX packaging step is skipped until `package.json` placeholders are replace
 - `publisher`
 - `repository.url`
 
+## Pre-commit Hooks
+
+This repo uses `.pre-commit-config.yaml` for local checks before commit.
+
+Install once:
+
+```bash
+python3 -m pip install pre-commit
+pre-commit install
+```
+
+Run manually on all files:
+
+```bash
+pre-commit run --all-files
+```
+
+Included hooks:
+
+1. JSON/YAML/basic whitespace checks.
+2. `npm run check:grammar` when syntax/grammar generator files change.
+3. `bash -n` syntax checks for shell scripts.
+
 ## Notes and TODO Defaults
 
 The upstream manifest currently marks some lexical areas as unspecified.

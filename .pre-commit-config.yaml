@@ -1,0 +1,24 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-json
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: arx-grammar-check
+        name: arx grammar sync check
+        entry: npm run check:grammar
+        language: system
+        pass_filenames: false
+        files: ^(syntax/arx\.syntax\.json|syntaxes/arx\.tmLanguage\.json|scripts/build-grammar\.mjs)$
+
+      - id: shell-script-syntax
+        name: shell script syntax
+        entry: bash -c 'bash -n scripts/sync-syntax.sh scripts/build.sh scripts/publish.sh'
+        language: system
+        pass_filenames: false
+        files: ^scripts/.*\.sh$
