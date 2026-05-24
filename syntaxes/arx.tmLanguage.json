@@ -85,6 +85,10 @@
           "match": "\"(?:\\\\.|[^\"\\\\\\n])*$"
         },
         {
+          "name": "invalid.illegal.empty-character.arx",
+          "match": "''"
+        },
+        {
           "name": "constant.character.quoted.single.arx",
           "match": "'(?:\\\\.|[^'\\\\\\n])'"
         },
@@ -138,6 +142,9 @@
             }
           },
           "patterns": [
+            {
+              "include": "#keywords"
+            },
             {
               "include": "#types"
             },
@@ -214,9 +221,12 @@
         },
         {
           "name": "meta.variable.declaration.arx",
-          "match": "\\b(?:const|var)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "match": "\\b(const|var)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
           "captures": {
             "1": {
+              "name": "keyword.control.arx"
+            },
+            "2": {
               "name": "variable.other.definition.arx"
             }
           }
@@ -291,11 +301,11 @@
       "patterns": [
         {
           "name": "support.function.builtin.arx",
-          "match": "\\b(?:(?:isinstance|dataframe|print|range|cast))\\b(?=\\s*\\()"
+          "match": "\\b(?:(?:isinstance|dataframe|print|range|cast))\\b(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
         },
         {
           "name": "support.function.arx",
-          "match": "\\b(?!\\b(?:dataframe|timestamp|datetime|operator|boolean|float16|float32|float64|assert|binary|extern|import|return|series|string|tensor|class|const|false|int16|int32|int64|unary|while|bool|char|date|else|from|int8|list|none|then|time|true|type|and|f16|f32|f64|for|i16|i32|i64|str|var|as|fn|i8|if|in|or)\\b)(?:(?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*\\()"
+          "match": "\\b(?!\\b(?:dataframe|timestamp|datetime|operator|boolean|float16|float32|float64|assert|binary|extern|import|return|series|string|tensor|class|const|false|int16|int32|int64|unary|while|bool|char|date|else|from|int8|list|none|then|time|true|type|and|f16|f32|f64|for|i16|i32|i64|str|var|as|fn|i8|if|in|or)\\b)(?:(?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
         }
       ]
     },

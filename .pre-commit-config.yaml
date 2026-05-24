@@ -18,7 +18,7 @@ repos:
 
       - id: shell-script-syntax
         name: shell script syntax
-        entry: bash -c 'bash -n scripts/sync-syntax.sh scripts/build.sh scripts/publish.sh'
+        entry: bash -c 'for f in scripts/sync-syntax.sh scripts/build.sh scripts/publish.sh; do bash -n "$f"; done'
         language: system
         pass_filenames: false
         files: ^scripts/.*\.sh$

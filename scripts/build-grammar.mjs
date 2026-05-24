@@ -98,26 +98,126 @@ function charClassRegex(chars) {
   return `[${singleChars.map((item) => escapeCharClass(item)).join("")}]`;
 }
 
+function valueAt(object, pathParts) {
+  return pathParts.reduce((value, part) => value?.[part], object);
+}
+
+function manifestError(message) {
+  throw new Error(`Invalid latest Arx syntax manifest: ${message}`);
+}
+
+function requireArray(spec, path) {
+  const value = valueAt(spec, path.split("."));
+  if (!Array.isArray(value)) {
+    manifestError(`${path} must be an array`);
+  }
+}
+
+function requireBoolean(spec, path) {
+  const value = valueAt(spec, path.split("."));
+  if (typeof value !== "boolean") {
+    manifestError(`${path} must be a boolean`);
+  }
+}
+
+function requireObject(spec, path) {
+  const value = valueAt(spec, path.split("."));
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    manifestError(`${path} must be an object`);
+  }
+}
+
+function requireString(spec, path) {
+  const value = valueAt(spec, path.split("."));
+  if (typeof value !== "string" || value.length === 0) {
+    manifestError(`${path} must be a non-empty string`);
+  }
+}
+
+function validateManifest(spec) {
+  requireObject({ spec }, "spec");
+
+  if ("comment" in spec) {
+    manifestError("use comments, not legacy comment");
+  }
+
+  if (Array.isArray(spec.literals)) {
+    manifestError("literals must use the latest object shape");
+  }
+
+  [
+    "syntax_pack_version",
+    "language",
+    "source_of_truth",
+    "docstrings.delimiter",
+    "docstrings.token_kind",
+    "identifiers.pattern"
+  ].forEach((path) => requireString(spec, path));
+
+  [
+    "file_extensions",
+    "keywords.reserved",
+    "keywords.contextual",
+    "literals.keywords",
+    "comments.line.delimiters",
+    "strings.quote_types",
+    "strings.escapes",
+    "numbers.formats",
+    "operators.single_char",
+    "operators.multi_char",
+    "operators.word_operators",
+    "operators.assignment",
+    "operators.comparison",
+    "operators.arithmetic",
+    "operators.logical",
+    "operators.type_union",
+    "operators.punctuation",
+    "brackets"
+  ].forEach((path) => requireArray(spec, path));
+
+  [
+    "comments.line.enabled",
+    "strings.supported",
+    "docstrings.supported",
+    "whitespace.indentation_significant"
+  ].forEach((path) => requireBoolean(spec, path));
+
+  [
+    "literals.booleans",
+    "literals.none",
+    "comments.block",
+    "strings.interpolation",
+    "numbers.underscores",
+    "numbers.exponent",
+    "whitespace",
+    "structural_forms"
+  ].forEach((path) => requireObject(spec, path));
+
+  if (spec.language !== "arx") {
+    manifestError("language must be arx");
+  }
+}
+
 function literalWords(spec) {
-  return spec.literals?.keywords ?? [];
+  return spec.literals.keywords;
 }
 
 function lineCommentDelimiters(spec) {
-  const line = spec.comments?.line ?? {};
+  const line = spec.comments.line;
   if (line.enabled === false) {
     return [];
   }
 
-  return line.delimiters ?? ["#"];
+  return line.delimiters;
 }
 
 function stringPatterns(spec) {
-  const strings = spec.strings ?? {};
+  const strings = spec.strings;
   if (strings.supported === false) {
     return [];
   }
 
-  const quoteTypes = strings.quote_types ?? ["single", "double"];
+  const quoteTypes = strings.quote_types;
   const patterns = [];
 
   if (quoteTypes.includes("double")) {
@@ -135,6 +235,10 @@ function stringPatterns(spec) {
 
   if (quoteTypes.includes("single")) {
     patterns.push(
+      {
+        name: "invalid.illegal.empty-character.arx",
+        match: "''"
+      },
       {
         name: "constant.character.quoted.single.arx",
         match: "'(?:\\\\.|[^'\\\\\\n])'"
@@ -154,12 +258,12 @@ function stringPatterns(spec) {
 }
 
 function docstringPatterns(spec) {
-  const docstrings = spec.docstrings ?? {};
+  const docstrings = spec.docstrings;
   if (!docstrings.supported) {
     return [];
   }
 
-  const delimiter = escapeRegex(docstrings.delimiter ?? "```");
+  const delimiter = escapeRegex(docstrings.delimiter);
   return [
     {
       name: "string.quoted.docstring.arx",
@@ -185,15 +289,15 @@ function commentPatterns(spec) {
 }
 
 function operatorPatterns(spec) {
-  const operators = spec.operators ?? {};
-  const multiCharOperators = operators.multi_char ?? [];
-  const wordOperators = operators.word_operators ?? [];
+  const operators = spec.operators;
+  const multiCharOperators = operators.multi_char;
+  const wordOperators = operators.word_operators;
   const symbolicOperators = unique([
-    ...(operators.assignment ?? []),
-    ...(operators.comparison ?? []),
-    ...(operators.arithmetic ?? []),
-    ...(operators.logical ?? []),
-    ...(operators.type_union ?? [])
+    ...operators.assignment,
+    ...operators.comparison,
+    ...operators.arithmetic,
+    ...operators.logical,
+    ...operators.type_union
   ]).filter((item) => item.length === 1);
 
   return [
@@ -213,8 +317,7 @@ function operatorPatterns(spec) {
 }
 
 function punctuationPatterns(spec) {
-  const operators = spec.operators ?? {};
-  const punctuation = operators.punctuation ?? [];
+  const punctuation = spec.operators.punctuation;
 
   return [
     {
@@ -237,12 +340,14 @@ function punctuationPatterns(spec) {
 }
 
 function buildGrammar(spec) {
-  const reservedKeywords = [...(spec.keywords?.reserved ?? [])];
-  const contextualKeywords = [...(spec.keywords?.contextual ?? [])];
+  validateManifest(spec);
+
+  const reservedKeywords = [...spec.keywords.reserved];
+  const contextualKeywords = [...spec.keywords.contextual];
   const literals = literalWords(spec);
-  const wordOperators = spec.operators?.word_operators ?? [];
-  const identifierPattern =
-    spec.identifiers?.pattern ?? "[A-Za-z_][A-Za-z0-9_]*";
+  const wordOperators = spec.operators.word_operators;
+  const identifierPattern = spec.identifiers.pattern;
+  const functionCallLookahead = "(?=\\s*(?:<[^>\\n]+>\\s*)?\\()";
   const nonFunctionWords = [
     ...reservedKeywords,
     ...contextualKeywords,
@@ -308,6 +413,7 @@ function buildGrammar(spec) {
               0: { name: "punctuation.definition.template.end.arx" }
             },
             patterns: [
+              { include: "#keywords" },
               { include: "#types" },
               { include: "#constants" },
               { include: "#operators" },
@@ -360,9 +466,10 @@ function buildGrammar(spec) {
           },
           {
             name: "meta.variable.declaration.arx",
-            match: `\\b(?:const|var)\\s+(${identifierPattern})\\b`,
+            match: `\\b(const|var)\\s+(${identifierPattern})\\b`,
             captures: {
-              1: { name: "variable.other.definition.arx" }
+              1: { name: "keyword.control.arx" },
+              2: { name: "variable.other.definition.arx" }
             }
           }
         ]
@@ -422,13 +529,15 @@ function buildGrammar(spec) {
         patterns: [
           {
             name: "support.function.builtin.arx",
-            match: `\\b(?:${alternationRegex(builtinFunctions)})\\b(?=\\s*\\()`
+            match:
+              `\\b(?:${alternationRegex(builtinFunctions)})\\b` +
+              functionCallLookahead
           },
           {
             name: "support.function.arx",
             match:
               `\\b(?!${wordRegex(nonFunctionWords)})` +
-              `(?:${identifierPattern})(?=\\s*\\()`
+              `(?:${identifierPattern})${functionCallLookahead}`
           }
         ]
       },
@@ -441,25 +550,35 @@ function buildGrammar(spec) {
   return `${JSON.stringify(grammar, null, 2)}\n`;
 }
 
-const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-const output = buildGrammar(manifest);
-const mode = process.argv.includes("--check") ? "check" : "write";
+function main() {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const output = buildGrammar(manifest);
+  const mode = process.argv.includes("--check") ? "check" : "write";
 
-if (mode === "check") {
-  const current = fs.existsSync(grammarPath)
-    ? fs.readFileSync(grammarPath, "utf8")
-    : "";
+  if (mode === "check") {
+    const current = fs.existsSync(grammarPath)
+      ? fs.readFileSync(grammarPath, "utf8")
+      : "";
 
-  if (current !== output) {
-    process.stderr.write(
-      "syntaxes/arx.tmLanguage.json is out of date. Run npm run build:grammar.\n"
-    );
-    process.exit(1);
+    if (current !== output) {
+      process.stderr.write(
+        "syntaxes/arx.tmLanguage.json is out of date. Run npm run build:grammar.\n"
+      );
+      process.exit(1);
+    }
+
+    process.stdout.write("Grammar is in sync with syntax/arx.syntax.json.\n");
+    process.exit(0);
   }
 
-  process.stdout.write("Grammar is in sync with syntax/arx.syntax.json.\n");
-  process.exit(0);
+  fs.writeFileSync(grammarPath, output, "utf8");
+  process.stdout.write(`Wrote ${path.relative(root, grammarPath)}\n`);
 }
 
-fs.writeFileSync(grammarPath, output, "utf8");
-process.stdout.write(`Wrote ${path.relative(root, grammarPath)}\n`);
+try {
+  main();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`${message}\n`);
+  process.exit(1);
+}

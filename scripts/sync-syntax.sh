@@ -14,7 +14,12 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Cloning $ARX_REPO_URL (ref: $ARX_REPO_REF) into a temporary directory..."
-git clone --depth 1 --branch "$ARX_REPO_REF" "$ARX_REPO_URL" "$CLONE_DIR"
+if ! git clone --depth 1 --branch "$ARX_REPO_REF" "$ARX_REPO_URL" "$CLONE_DIR"; then
+  rm -rf "$CLONE_DIR"
+  git clone --filter=blob:none --no-checkout "$ARX_REPO_URL" "$CLONE_DIR"
+  git -C "$CLONE_DIR" fetch --depth 1 origin "$ARX_REPO_REF"
+  git -C "$CLONE_DIR" checkout --detach FETCH_HEAD
+fi
 
 if [[ ! -f "$SOURCE_PATH" ]]; then
   echo "Could not find syntax manifest at packages/arx/src/arx/lexer/syntax.json" >&2
