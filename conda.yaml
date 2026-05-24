@@ -4,5 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - pip
+  - python
+  - nodejs
   - pip:
     - pre-commit
