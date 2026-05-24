@@ -57,6 +57,8 @@
     "build:grammar": "node ./scripts/build-grammar.mjs --write",
     "check:grammar": "node ./scripts/build-grammar.mjs --check",
     "build:vsix": "bash ./scripts/build.sh --no-dependencies",
-    "publish:all": "bash ./scripts/publish.sh --all --no-dependencies"
+    "publish:all": "bash ./scripts/publish.sh --all --no-dependencies",
+    "release:dry-run": "bash ./scripts/semantic-release.sh --dry-run",
+    "release:ci": "bash ./scripts/semantic-release.sh --ci"
   }
 }

@@ -95,6 +95,30 @@ Avoid hand-editing `syntaxes/arx.tmLanguage.json`; it should be generated from
 
 ## Build and Publish
 
+Releases are automated with semantic-release in
+`.github/workflows/release.yaml`.
+
+Prerequisites:
+
+1. Keep GitHub release tags in `0.2.0` format; `.releaserc.json` uses
+   `tagFormat: "${version}"`.
+2. Add repository secrets:
+   - `VSCE_PAT` for VS Code Marketplace.
+   - `OVSX_PAT` for Open VSX.
+3. Use Conventional Commits on `main`:
+   - `fix:` publishes a patch release.
+   - `feat:` publishes a minor release.
+   - `BREAKING CHANGE:` publishes a major release.
+
+Pushes to `main` run a semantic-release dry run. To publish, run the `release`
+workflow manually from GitHub Actions.
+
+Local release dry run:
+
+```bash
+npm run release:dry-run
+```
+
 Build a VSIX:
 
 ```bash
@@ -124,6 +148,12 @@ This repo includes `.github/workflows/main.yaml` with:
 2. Script syntax validation.
 3. Grammar generation sync validation.
 4. Optional VSIX packaging and artifact upload when package metadata is ready.
+
+It also includes `.github/workflows/release.yaml` with:
+
+1. Semantic-release dry runs on pushes to `main`.
+2. Manual semantic-release publishing to GitHub Releases, VS Code Marketplace,
+   and Open VSX.
 
 ## Pre-commit Hooks
 

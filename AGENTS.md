@@ -211,10 +211,14 @@ state that clearly in final output.
 
 ### Build or publish maintenance
 
-1. Keep `scripts/build.sh` and `scripts/publish.sh` shellcheck-friendly where
-   possible and at least `bash -n` clean.
+1. Keep `scripts/*.sh` shellcheck-friendly where possible and at least
+   `bash -n` clean.
 2. Do not commit secrets or tokens.
 3. Keep publish metadata in `package.json` valid for Marketplace/Open VSX.
+4. Keep release automation in `.releaserc.json`,
+   `.github/workflows/release.yaml`, and `scripts/semantic-release.sh`
+   aligned.
+5. Release tags use plain semantic versions such as `0.2.0`, not `v0.2.0`.
 
 ## PR Review Checklist For AI Agents
 

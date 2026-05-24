@@ -53,9 +53,9 @@ jobs:
 
       - name: Validate shell scripts
         run: |
-          bash -n scripts/sync-syntax.sh
-          bash -n scripts/build.sh
-          bash -n scripts/publish.sh
+          for file in scripts/*.sh; do
+            bash -n "$file"
+          done
 
       - name: Check generated grammar is in sync
         run: npm run check:grammar
