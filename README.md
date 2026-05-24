@@ -18,6 +18,10 @@ Highlight-only VS Code extension for the **Arx** programming language.
   - line comments (`#`)
   - brackets (`()`, `{}`, `[]`)
   - auto-closing and surrounding pairs
+- Arx logo assets:
+  - marketplace extension icon (`images/icon.png`)
+  - the same Arx logo as the contributed language icon for `.x` and `.arx`
+    files in VS Code file icon themes that use language icons
 
 This extension intentionally has no language server, commands, or runtime extension code.
 
