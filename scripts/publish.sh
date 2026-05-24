@@ -212,9 +212,9 @@ if [[ "$do_marketplace" -eq 1 ]]; then
       pub_args+=(--no-dependencies)
     fi
 
-    run_marketplace_publish npx --yes @vscode/vsce publish "$bump" -p "$VSCE_PAT" "${pub_args[@]}"
+    run_marketplace_publish npx --yes --package @vscode/vsce vsce publish "$bump" -p "$VSCE_PAT" "${pub_args[@]}"
   else
-    run_marketplace_publish npx --yes @vscode/vsce publish --packagePath "$vsix_path" -p "$VSCE_PAT"
+    run_marketplace_publish npx --yes --package @vscode/vsce vsce publish --packagePath "$vsix_path" -p "$VSCE_PAT"
   fi
 fi
 
@@ -225,11 +225,11 @@ if [[ "$do_openvsx" -eq 1 ]]; then
       exit 2
     fi
     set +e
-    npx --yes ovsx create-namespace "$PUBLISHER" --pat "$OVSX_PAT"
+    npx --yes --package ovsx ovsx create-namespace "$PUBLISHER" --pat "$OVSX_PAT"
     set -e
   fi
 
-  npx --yes ovsx publish "$vsix_path" --pat "$OVSX_PAT"
+  npx --yes --package ovsx ovsx publish "$vsix_path" --pat "$OVSX_PAT"
 fi
 
 echo "Done."

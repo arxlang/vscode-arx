@@ -80,7 +80,7 @@ if [[ "$no_deps" -eq 1 ]]; then
   args+=(--no-dependencies)
 fi
 
-npx --yes @vscode/vsce "${args[@]}" >&2
+npx --yes --package @vscode/vsce vsce "${args[@]}" >&2
 
 if [[ ! -f "$vsix_path" ]]; then
   echo "Build finished but no .vsix found at $vsix_path" >&2
