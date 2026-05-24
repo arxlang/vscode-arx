@@ -9,12 +9,53 @@ const root = path.resolve(__dirname, "..");
 const manifestPath = path.join(root, "syntax", "arx.syntax.json");
 const grammarPath = path.join(root, "syntaxes", "arx.tmLanguage.json");
 
+const builtinTypes = [
+  "bool",
+  "boolean",
+  "char",
+  "dataframe",
+  "date",
+  "datetime",
+  "f16",
+  "f32",
+  "f64",
+  "float16",
+  "float32",
+  "float64",
+  "i8",
+  "i16",
+  "i32",
+  "i64",
+  "int8",
+  "int16",
+  "int32",
+  "int64",
+  "list",
+  "series",
+  "str",
+  "string",
+  "tensor",
+  "time",
+  "timestamp"
+];
+
+const builtinFunctions = ["cast", "dataframe", "isinstance", "print", "range"];
+const declarationModifiers = [
+  "abstract",
+  "constant",
+  "extern",
+  "mutable",
+  "private",
+  "protected",
+  "public",
+  "static"
+];
+
 function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function escapeCharClass(text) {
-  // Escape only characters that are special inside [...].
   return text.replace(/[[\]\\^-]/g, "\\$&");
 }
 
@@ -22,104 +63,264 @@ function unique(values) {
   return [...new Set(values)];
 }
 
+function sortLongestFirst(values) {
+  return [...values].sort(
+    (left, right) => right.length - left.length || left.localeCompare(right)
+  );
+}
+
 function wordRegex(words) {
-  if (!words.length) {
+  const uniqueWords = sortLongestFirst(unique(words)).filter(Boolean);
+  if (!uniqueWords.length) {
     return "(?!)";
   }
 
-  const escaped = words.map((item) => escapeRegex(item));
+  const escaped = uniqueWords.map((item) => escapeRegex(item));
   return `\\b(?:${escaped.join("|")})\\b`;
 }
 
 function alternationRegex(words) {
-  if (!words.length) {
+  const uniqueWords = sortLongestFirst(unique(words)).filter(Boolean);
+  if (!uniqueWords.length) {
     return "(?!)";
   }
 
-  const escaped = words.map((item) => escapeRegex(item));
+  const escaped = uniqueWords.map((item) => escapeRegex(item));
   return `(?:${escaped.join("|")})`;
 }
 
-function buildGrammar(spec) {
-  const reservedKeywords = [...(spec.keywords?.reserved ?? [])].sort();
-  const contextualKeywords = [...(spec.keywords?.contextual ?? [])].sort();
-  const identifierPattern = spec.identifiers?.pattern ?? "[A-Za-z_][A-Za-z0-9_]*";
-  const reservedKeywordAlternation = alternationRegex(reservedKeywords);
+function charClassRegex(chars) {
+  const singleChars = unique(chars).filter((item) => item.length === 1);
+  if (!singleChars.length) {
+    return "(?!)";
+  }
 
-  // TODO(ARX-VSCODE-LITERALS-001): upstream manifest currently has [] literals.
-  // Keep a conservative fallback for editor highlighting only.
-  const literalDefaults = ["true", "false", "null"];
-  const literalWords =
-    spec.literals && spec.literals.length > 0 ? spec.literals : literalDefaults;
+  return `[${singleChars.map((item) => escapeCharClass(item)).join("")}]`;
+}
 
-  const opSingles = unique([
-    ...(spec.operators?.assignment ?? []),
-    ...(spec.operators?.comparison ?? []),
-    ...(spec.operators?.arithmetic ?? [])
+function literalWords(spec) {
+  return spec.literals?.keywords ?? [];
+}
+
+function lineCommentDelimiters(spec) {
+  const line = spec.comments?.line ?? {};
+  if (line.enabled === false) {
+    return [];
+  }
+
+  return line.delimiters ?? ["#"];
+}
+
+function stringPatterns(spec) {
+  const strings = spec.strings ?? {};
+  if (strings.supported === false) {
+    return [];
+  }
+
+  const quoteTypes = strings.quote_types ?? ["single", "double"];
+  const patterns = [];
+
+  if (quoteTypes.includes("double")) {
+    patterns.push(
+      {
+        name: "string.quoted.double.arx",
+        match: '"(?:\\\\.|[^"\\\\\\n])*"'
+      },
+      {
+        name: "invalid.illegal.unterminated-string.arx",
+        match: '"(?:\\\\.|[^"\\\\\\n])*$'
+      }
+    );
+  }
+
+  if (quoteTypes.includes("single")) {
+    patterns.push(
+      {
+        name: "constant.character.quoted.single.arx",
+        match: "'(?:\\\\.|[^'\\\\\\n])'"
+      },
+      {
+        name: "invalid.illegal.character-too-long.arx",
+        match: "'(?:\\\\.|[^'\\\\\\n]){2,}'"
+      },
+      {
+        name: "invalid.illegal.unterminated-character.arx",
+        match: "'(?:\\\\.|[^'\\\\\\n])*$"
+      }
+    );
+  }
+
+  return patterns;
+}
+
+function docstringPatterns(spec) {
+  const docstrings = spec.docstrings ?? {};
+  if (!docstrings.supported) {
+    return [];
+  }
+
+  const delimiter = escapeRegex(docstrings.delimiter ?? "```");
+  return [
+    {
+      name: "string.quoted.docstring.arx",
+      contentName: "meta.embedded.block.yaml.arx",
+      begin: delimiter,
+      beginCaptures: {
+        0: { name: "punctuation.definition.string.begin.arx" }
+      },
+      end: delimiter,
+      endCaptures: {
+        0: { name: "punctuation.definition.string.end.arx" }
+      },
+      patterns: [{ include: "source.yaml" }]
+    }
+  ];
+}
+
+function commentPatterns(spec) {
+  return lineCommentDelimiters(spec).map((delimiter) => ({
+    name: "comment.line.number-sign.arx",
+    match: `${escapeRegex(delimiter)}.*$`
+  }));
+}
+
+function operatorPatterns(spec) {
+  const operators = spec.operators ?? {};
+  const multiCharOperators = operators.multi_char ?? [];
+  const wordOperators = operators.word_operators ?? [];
+  const symbolicOperators = unique([
+    ...(operators.assignment ?? []),
+    ...(operators.comparison ?? []),
+    ...(operators.arithmetic ?? []),
+    ...(operators.logical ?? []),
+    ...(operators.type_union ?? [])
   ]).filter((item) => item.length === 1);
 
-  const punctuationSingles = unique(spec.operators?.punctuation ?? []).filter(
-    (item) => item.length === 1
-  );
+  return [
+    {
+      name: "keyword.operator.arx",
+      match: alternationRegex(multiCharOperators)
+    },
+    {
+      name: "keyword.operator.word.arx",
+      match: wordRegex(wordOperators)
+    },
+    {
+      name: "keyword.operator.arx",
+      match: charClassRegex(symbolicOperators)
+    }
+  ];
+}
 
-  const singleOpCharClass = opSingles.length
-    ? `[${opSingles.map((item) => escapeCharClass(item)).join("")}]`
-    : "(?!)";
+function punctuationPatterns(spec) {
+  const operators = spec.operators ?? {};
+  const punctuation = operators.punctuation ?? [];
 
-  const punctuationCharClass = punctuationSingles.length
-    ? `[${punctuationSingles.map((item) => escapeCharClass(item)).join("")}]`
-    : "(?!)";
+  return [
+    {
+      name: "punctuation.separator.arx",
+      match: charClassRegex(punctuation.filter((item) => item !== "@"))
+    },
+    {
+      name: "punctuation.definition.annotation.begin.arx",
+      match: "@(?=\\[|<)"
+    },
+    {
+      name: "punctuation.section.brackets.begin.arx",
+      match: "[\\(\\{\\[]"
+    },
+    {
+      name: "punctuation.section.brackets.end.arx",
+      match: "[\\)\\}\\]]"
+    }
+  ];
+}
 
-  // TODO(ARX-VSCODE-OPS-001): confirm multi-char operators in upstream spec.
-  const provisionalMultiOps = ["==", "!=", "<=", ">=", "->"];
-  const provisionalMultiOpRegex = provisionalMultiOps
-    .map((item) => escapeRegex(item))
-    .join("|");
+function buildGrammar(spec) {
+  const reservedKeywords = [...(spec.keywords?.reserved ?? [])];
+  const contextualKeywords = [...(spec.keywords?.contextual ?? [])];
+  const literals = literalWords(spec);
+  const wordOperators = spec.operators?.word_operators ?? [];
+  const identifierPattern =
+    spec.identifiers?.pattern ?? "[A-Za-z_][A-Za-z0-9_]*";
+  const nonFunctionWords = [
+    ...reservedKeywords,
+    ...contextualKeywords,
+    ...literals,
+    ...wordOperators,
+    ...builtinTypes
+  ];
 
-  // TODO(ARX-VSCODE-STRINGS-001): upstream spec says strings.supported=false.
-  // Keep conservative single/double quote patterns as provisional defaults.
   const grammar = {
     $schema:
       "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
     name: "Arx",
     scopeName: "source.arx",
     patterns: [
+      { include: "#docstrings" },
       { include: "#comments" },
       { include: "#strings" },
+      { include: "#annotations" },
       { include: "#declarations" },
       { include: "#keywords" },
       { include: "#constants" },
+      { include: "#functions" },
+      { include: "#types" },
       { include: "#numbers" },
       { include: "#operators" },
-      { include: "#functions" },
       { include: "#punctuation" }
     ],
     repository: {
+      docstrings: {
+        patterns: docstringPatterns(spec)
+      },
       comments: {
+        patterns: commentPatterns(spec)
+      },
+      strings: {
+        patterns: stringPatterns(spec)
+      },
+      annotations: {
         patterns: [
           {
-            name: "comment.line.number-sign.arx",
-            match: "#.*$"
+            name: "meta.annotation.modifiers.arx",
+            begin: "@\\[",
+            beginCaptures: {
+              0: { name: "punctuation.definition.annotation.begin.arx" }
+            },
+            end: "\\]",
+            endCaptures: {
+              0: { name: "punctuation.definition.annotation.end.arx" }
+            },
+            patterns: [
+              { include: "#modifiers" },
+              { include: "#punctuation" }
+            ]
+          },
+          {
+            name: "meta.template.parameters.arx",
+            begin: "@<",
+            beginCaptures: {
+              0: { name: "punctuation.definition.template.begin.arx" }
+            },
+            end: ">",
+            endCaptures: {
+              0: { name: "punctuation.definition.template.end.arx" }
+            },
+            patterns: [
+              { include: "#types" },
+              { include: "#constants" },
+              { include: "#operators" },
+              { include: "#punctuation" }
+            ]
           }
         ]
       },
-      strings: {
+      modifiers: {
         patterns: [
           {
-            name: "string.quoted.double.arx",
-            match: '"(?:\\\\.|[^"\\\\\\n])*"'
-          },
-          {
-            name: "string.quoted.single.arx",
-            match: "'(?:\\\\.|[^'\\\\\\n])*'"
-          },
-          {
-            name: "invalid.illegal.unterminated-string.arx",
-            match: '"(?:\\\\.|[^"\\\\\\n])*$'
-          },
-          {
-            name: "invalid.illegal.unterminated-string.arx",
-            match: "'(?:\\\\.|[^'\\\\\\n])*$"
+            name: "storage.modifier.arx",
+            match: wordRegex(declarationModifiers)
           }
         ]
       },
@@ -129,15 +330,39 @@ function buildGrammar(spec) {
             name: "meta.function.definition.arx",
             match: `\\b(fn)\\s+(${identifierPattern})\\b`,
             captures: {
-              "1": { name: "keyword.control.arx" },
-              "2": { name: "entity.name.function.arx" }
+              1: { name: "keyword.control.arx" },
+              2: { name: "entity.name.function.arx" }
+            }
+          },
+          {
+            name: "meta.extern.definition.arx",
+            match: `\\b(extern)\\s+(${identifierPattern})\\b`,
+            captures: {
+              1: { name: "keyword.control.arx" },
+              2: { name: "entity.name.function.arx" }
+            }
+          },
+          {
+            name: "meta.class.definition.arx",
+            match: `\\b(class)\\s+(${identifierPattern})\\b`,
+            captures: {
+              1: { name: "keyword.control.arx" },
+              2: { name: "entity.name.type.class.arx" }
+            }
+          },
+          {
+            name: "meta.type.alias.arx",
+            match: `\\b(type)\\s+(${identifierPattern})\\b`,
+            captures: {
+              1: { name: "keyword.declaration.type.arx" },
+              2: { name: "entity.name.type.alias.arx" }
             }
           },
           {
             name: "meta.variable.declaration.arx",
             match: `\\b(?:const|var)\\s+(${identifierPattern})\\b`,
             captures: {
-              "1": { name: "variable.other.definition.arx" }
+              1: { name: "variable.other.definition.arx" }
             }
           }
         ]
@@ -158,7 +383,15 @@ function buildGrammar(spec) {
         patterns: [
           {
             name: "constant.language.arx",
-            match: wordRegex(literalWords)
+            match: wordRegex(literals)
+          }
+        ]
+      },
+      types: {
+        patterns: [
+          {
+            name: "support.type.builtin.arx",
+            match: wordRegex(builtinTypes)
           }
         ]
       },
@@ -183,40 +416,24 @@ function buildGrammar(spec) {
         ]
       },
       operators: {
-        patterns: [
-          {
-            name: "keyword.operator.arx",
-            match: `(?:${provisionalMultiOpRegex})`
-          },
-          {
-            name: "keyword.operator.arx",
-            match: singleOpCharClass
-          }
-        ]
+        patterns: operatorPatterns(spec)
       },
       functions: {
         patterns: [
           {
+            name: "support.function.builtin.arx",
+            match: `\\b(?:${alternationRegex(builtinFunctions)})\\b(?=\\s*\\()`
+          },
+          {
             name: "support.function.arx",
-            match: `\\b(?!${reservedKeywordAlternation}\\b)(${identifierPattern})(?=\\s*\\()`
+            match:
+              `\\b(?!${wordRegex(nonFunctionWords)})` +
+              `(?:${identifierPattern})(?=\\s*\\()`
           }
         ]
       },
       punctuation: {
-        patterns: [
-          {
-            name: "punctuation.separator.arx",
-            match: punctuationCharClass
-          },
-          {
-            name: "punctuation.section.brackets.begin.arx",
-            match: "[({[]"
-          },
-          {
-            name: "punctuation.section.brackets.end.arx",
-            match: "[)}\\]]"
-          }
-        ]
+        patterns: punctuationPatterns(spec)
       }
     }
   };

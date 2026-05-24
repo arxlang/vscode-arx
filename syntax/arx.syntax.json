@@ -2,94 +2,101 @@
   "syntax_pack_version": "0.2.0",
   "language": "arx",
   "status": "draft",
-  "source_of_truth": "This manifest is the normative lexical source for editor tooling.",
-  "file_extensions": [
-    ".x",
-    ".arx"
-  ],
+  "source_of_truth": "Canonical lexical source for editor tooling and lexer tables.",
+  "file_extensions": [".x", ".arx"],
+
   "keywords": {
     "reserved": [
+      "assert",
+      "class",
       "const",
       "else",
       "extern",
       "fn",
       "for",
       "if",
+      "import",
       "in",
       "return",
       "then",
-      "var"
+      "var",
+      "while"
     ],
-    "contextual": []
+    "contextual": ["as", "from", "type", "binary", "unary", "operator"]
   },
-  "literals": [],
-  "comment": {
+
+  "literals": {
+    "keywords": ["true", "false", "none"],
+    "booleans": {
+      "true": true,
+      "false": false
+    },
+    "none": {
+      "token_value": null
+    }
+  },
+
+  "comments": {
     "line": {
-      "delimiters": [
-        "#"
-      ]
+      "enabled": true,
+      "delimiters": ["#"]
     },
     "block": {
       "enabled": false,
       "open": "",
       "close": "",
       "nesting": false
-    },
-    "notes": [
-      "Only # line comments are currently specified.",
-      "TODO(ARX-LEX-COMMENT-002): confirm whether // will be introduced as a comment delimiter."
-    ]
+    }
   },
+
   "strings": {
-    "supported": false,
-    "quote_types": [],
+    "supported": true,
+    "quote_types": ["single", "double"],
     "triple_quotes": false,
     "raw_prefixes": [],
-    "escapes": [],
+    "escapes": ["\\\\", "\\n", "\\r", "\\t", "\\\"", "\\'"],
     "interpolation": {
       "enabled": false,
       "start": "",
       "end": ""
-    },
-    "notes": [
-      "TODO(ARX-LEX-STRINGS-001): define string literals and escapes."
-    ]
+    }
   },
+
+  "docstrings": {
+    "supported": true,
+    "delimiter": "```",
+    "token_kind": "docstring"
+  },
+
   "numbers": {
-    "formats": [
-      "decimal_integer",
-      "decimal_float"
-    ],
-    "bases": [
-      10
-    ],
-    "underscores": {
-      "allowed": false
-    },
+    "formats": ["decimal_integer", "decimal_float"],
+    "bases": [10],
+    "underscores": { "allowed": false },
     "suffixes": [],
-    "exponent": {
-      "allowed": false,
-      "forms": []
-    },
+    "exponent": { "allowed": false, "forms": [] },
     "leading_dot_float": true,
     "trailing_dot_float": true,
     "multiple_dots": "invalid"
   },
+
   "identifiers": {
     "start": "Unicode letter or underscore",
     "continue": "Unicode alphanumeric or underscore",
     "pattern": "(?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*",
-    "unicode_policy": "Current behavior follows Unicode categories from host runtime. TODO(ARX-LEX-IDENT-001): formalize policy (e.g., XID_Start/XID_Continue vs ASCII-only)."
+    "unicode_policy": "Current runtime behavior"
   },
+
   "whitespace": {
     "indentation_significant": true,
-    "indent_unit": "2 spaces",
-    "tabs": "unspecified",
+    "indent_unit": 2,
+    "indent_unit_kind": "spaces",
+    "tabs": "forbidden_or_error",
     "newlines_significant": true,
-    "blank_lines": "ignored for indentation transitions"
+    "blank_lines": "ignored_for_indentation_transitions"
   },
+
   "operators": {
-    "symbols": [
+    "single_char": [
       "=",
       "<",
       ">",
@@ -97,44 +104,73 @@
       "-",
       "*",
       "/",
+      ".",
       ":",
       ",",
-      ";"
-    ],
-    "assignment": [
-      "="
-    ],
-    "comparison": [
-      "<",
-      ">"
-    ],
-    "arithmetic": [
-      "+",
-      "-",
-      "*",
-      "/"
-    ],
-    "punctuation": [
-      ":",
-      ",",
-      ";"
-    ],
-    "notes": [
-      "TODO(ARX-LEX-OPS-001): finalize multi-character operators (==, !=, <=, >=, ->)."
-    ]
-  },
-  "brackets": [
-    [
+      ";",
+      "@",
+      "|",
+      "!",
       "(",
-      ")"
-    ],
-    [
+      ")",
       "[",
-      "]"
-    ],
-    [
+      "]",
       "{",
       "}"
-    ]
+    ],
+    "multi_char": ["==", "!=", "<=", ">=", "->", "&&", "||", "++", "--"],
+    "word_operators": ["and", "or"],
+    "assignment": ["="],
+    "comparison": ["<", ">", "<=", ">=", "==", "!="],
+    "arithmetic": ["+", "-", "*", "/"],
+    "logical": ["&&", "||", "and", "or", "!"],
+    "type_union": ["|"],
+    "punctuation": ["@", ":", ",", ";", "."]
+  },
+
+  "structural_forms": {
+    "annotations": {
+      "start": "@[",
+      "separator": ",",
+      "end": "]"
+    },
+    "template_parameter_block": {
+      "start": "@<",
+      "separator": ",",
+      "end": ">"
+    },
+    "explicit_template_call": {
+      "uses_angle_brackets": true
+    },
+    "grouped_imports": {
+      "supported": true,
+      "requires_from": true,
+      "allows_trailing_comma": true
+    },
+    "type_alias": {
+      "form": "type Name = type",
+      "supports_union_rhs": true,
+      "top_level_only": true
+    },
+    "relative_imports": {
+      "leading_dot_tokens": true
+    },
+    "dataframe_type": {
+      "static_schema": "dataframe[name: type, ...]",
+      "runtime_schema_parameter": "dataframe[...]"
+    },
+    "series_type": {
+      "form": "series[type]"
+    },
+    "dataframe_constructor": {
+      "form": "dataframe({name: [literal, ...], ...})",
+      "column_access": ["value.name", "value[\"name\"]"]
+    }
+  },
+
+  "brackets": [
+    ["(", ")"],
+    ["[", "]"],
+    ["{", "}"]
   ]
 }

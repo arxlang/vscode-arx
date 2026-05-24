@@ -6,7 +6,7 @@ ARX_REPO_URL="${ARX_REPO_URL:-https://github.com/arxlang/arx.git}"
 ARX_REPO_REF="${ARX_REPO_REF:-main}"
 TMP_DIR="$(mktemp -d)"
 CLONE_DIR="$TMP_DIR/arx"
-SOURCE_PATH="$CLONE_DIR/syntax/arx.syntax.json"
+SOURCE_PATH="$CLONE_DIR/packages/arx/src/arx/lexer/syntax.json"
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -17,7 +17,7 @@ echo "Cloning $ARX_REPO_URL (ref: $ARX_REPO_REF) into a temporary directory..."
 git clone --depth 1 --branch "$ARX_REPO_REF" "$ARX_REPO_URL" "$CLONE_DIR"
 
 if [[ ! -f "$SOURCE_PATH" ]]; then
-  echo "Could not find syntax manifest at $SOURCE_PATH" >&2
+  echo "Could not find syntax manifest at packages/arx/src/arx/lexer/syntax.json" >&2
   exit 1
 fi
 

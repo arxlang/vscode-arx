@@ -4,7 +4,15 @@ Highlight-only VS Code extension for the **Arx** programming language.
 
 ## Features
 
-- TextMate syntax highlighting (`source.arx`)
+- TextMate syntax highlighting (`source.arx`) for current Arx syntax:
+  - Douki/YAML docstrings delimited by triple backticks
+  - `#` line comments
+  - single-character literals and double-quoted strings
+  - numeric, boolean, and `none` literals
+  - functions, extern declarations, classes, type aliases, imports, assertions,
+    loops, variables, and constants
+  - annotations (`@[...]`) and template parameter blocks (`@<...>`)
+  - current symbolic and word operators
 - Basic language configuration:
   - line comments (`#`)
   - brackets (`()`, `{}`, `[]`)
@@ -14,25 +22,29 @@ This extension intentionally has no language server, commands, or runtime extens
 
 ## Source of Truth
 
-Lexical rules are sourced from:
+Lexical rules are vendored from the main Arx repository:
+
+- `packages/arx/src/arx/lexer/syntax.json`
+
+The vendored copy in this repository is:
 
 - `syntax/arx.syntax.json`
 
-This file is vendored from the main Arx repository and used to generate:
+The vendored manifest is used to generate:
 
 - `syntaxes/arx.tmLanguage.json`
 
 ## Local Development
 
 1. Open this repo in VS Code.
-2. Run:
+2. Regenerate the TextMate grammar:
 
 ```bash
 npm run build:grammar
 ```
 
 3. Press `F5` to launch an Extension Development Host.
-4. Open an `.arx` file in the new window.
+4. Open an `.x` or `.arx` file in the new window.
 
 ## Keep It In Sync
 
@@ -56,13 +68,27 @@ ARX_REPO_REF=main \
 npm run sync:syntax
 ```
 
-## Updating Keywords / Operators
+To sync from a local Arx checkout instead, copy the manifest and rebuild:
 
-1. Update the canonical manifest in the main Arx repo.
-2. Run `npm run sync:syntax` in this repo.
-3. Commit both:
+```bash
+cp ../arx/packages/arx/src/arx/lexer/syntax.json syntax/arx.syntax.json
+npm run build:grammar
+npm run check:grammar
+```
+
+## Updating Syntax Highlighting
+
+1. Update the canonical syntax manifest in the main Arx repo first.
+2. Sync or copy it into `syntax/arx.syntax.json` here.
+3. Update `scripts/build-grammar.mjs` when the manifest shape or language forms
+   change.
+4. Run `npm run build:grammar`.
+5. Commit both generated artifacts:
    - `syntax/arx.syntax.json`
    - `syntaxes/arx.tmLanguage.json`
+
+Avoid hand-editing `syntaxes/arx.tmLanguage.json`; it should be generated from
+`syntax/arx.syntax.json`.
 
 ## Build and Publish
 
@@ -92,13 +118,9 @@ bash ./scripts/publish.sh --marketplace --bump patch --no-dependencies
 This repo includes `.github/workflows/main.yaml` with:
 
 1. PR branch freshness check.
-2. Script syntax + grammar sync validation.
-3. Optional VSIX packaging and artifact upload.
-
-The VSIX packaging step is skipped until `package.json` placeholders are replaced:
-
-- `publisher`
-- `repository.url`
+2. Script syntax validation.
+3. Grammar generation sync validation.
+4. Optional VSIX packaging and artifact upload when package metadata is ready.
 
 ## Pre-commit Hooks
 
@@ -123,35 +145,13 @@ Included hooks:
 2. `npm run check:grammar` when syntax/grammar generator files change.
 3. `bash -n` syntax checks for shell scripts.
 
-## Notes and TODO Defaults
-
-The upstream manifest currently marks some lexical areas as unspecified.
-This extension uses conservative TODO defaults for highlighting only:
-
-- TODO(ARX-VSCODE-STRINGS-001): provisional single/double-quoted string scopes.
-- TODO(ARX-VSCODE-LITERALS-001): provisional `true|false|null` literal scopes.
-- TODO(ARX-VSCODE-OPS-001): provisional multi-char operators (`==`, `!=`, `<=`, `>=`, `->`).
-
-When upstream syntax rules are finalized, these defaults should be replaced by manifest-driven values.
-
 ## File Associations
 
-This extension registers `.arx` by default.
-
-TODO: `.x` is intentionally not auto-registered yet to avoid extension collisions.
-If you want local `.x` association now, add this in your user/workspace settings:
-
-```json
-{
-  "files.associations": {
-    "*.x": "arx"
-  }
-}
-```
+This extension registers both `.x` and `.arx` as Arx files.
 
 ## Contributing
 
-1. Keep `syntax/arx.syntax.json` as the single lexical source.
+1. Keep `syntax/arx.syntax.json` synchronized with the main Arx syntax manifest.
 2. Regenerate grammar (`npm run build:grammar`).
-3. Run check (`npm run check:grammar`).
-4. Open PR with generated files included.
+3. Run checks (`npm run check:grammar` and pre-commit where practical).
+4. Open a PR with generated files included.

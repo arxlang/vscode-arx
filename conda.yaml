@@ -8,3 +8,4 @@ dependencies:
   - nodejs
   - pip:
     - pre-commit
+    - arxlang==1.23.1

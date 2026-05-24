@@ -4,10 +4,16 @@
   "scopeName": "source.arx",
   "patterns": [
     {
+      "include": "#docstrings"
+    },
+    {
       "include": "#comments"
     },
     {
       "include": "#strings"
+    },
+    {
+      "include": "#annotations"
     },
     {
       "include": "#declarations"
@@ -19,19 +25,47 @@
       "include": "#constants"
     },
     {
+      "include": "#functions"
+    },
+    {
+      "include": "#types"
+    },
+    {
       "include": "#numbers"
     },
     {
       "include": "#operators"
     },
     {
-      "include": "#functions"
-    },
-    {
       "include": "#punctuation"
     }
   ],
   "repository": {
+    "docstrings": {
+      "patterns": [
+        {
+          "name": "string.quoted.docstring.arx",
+          "contentName": "meta.embedded.block.yaml.arx",
+          "begin": "```",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.arx"
+            }
+          },
+          "end": "```",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.arx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "source.yaml"
+            }
+          ]
+        }
+      ]
+    },
     "comments": {
       "patterns": [
         {
@@ -47,16 +81,84 @@
           "match": "\"(?:\\\\.|[^\"\\\\\\n])*\""
         },
         {
-          "name": "string.quoted.single.arx",
-          "match": "'(?:\\\\.|[^'\\\\\\n])*'"
-        },
-        {
           "name": "invalid.illegal.unterminated-string.arx",
           "match": "\"(?:\\\\.|[^\"\\\\\\n])*$"
         },
         {
-          "name": "invalid.illegal.unterminated-string.arx",
+          "name": "constant.character.quoted.single.arx",
+          "match": "'(?:\\\\.|[^'\\\\\\n])'"
+        },
+        {
+          "name": "invalid.illegal.character-too-long.arx",
+          "match": "'(?:\\\\.|[^'\\\\\\n]){2,}'"
+        },
+        {
+          "name": "invalid.illegal.unterminated-character.arx",
           "match": "'(?:\\\\.|[^'\\\\\\n])*$"
+        }
+      ]
+    },
+    "annotations": {
+      "patterns": [
+        {
+          "name": "meta.annotation.modifiers.arx",
+          "begin": "@\\[",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.annotation.begin.arx"
+            }
+          },
+          "end": "\\]",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.annotation.end.arx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#modifiers"
+            },
+            {
+              "include": "#punctuation"
+            }
+          ]
+        },
+        {
+          "name": "meta.template.parameters.arx",
+          "begin": "@<",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.template.begin.arx"
+            }
+          },
+          "end": ">",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.template.end.arx"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#types"
+            },
+            {
+              "include": "#constants"
+            },
+            {
+              "include": "#operators"
+            },
+            {
+              "include": "#punctuation"
+            }
+          ]
+        }
+      ]
+    },
+    "modifiers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.arx",
+          "match": "\\b(?:protected|abstract|constant|mutable|private|extern|public|static)\\b"
         }
       ]
     },
@@ -75,6 +177,42 @@
           }
         },
         {
+          "name": "meta.extern.definition.arx",
+          "match": "\\b(extern)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.arx"
+            },
+            "2": {
+              "name": "entity.name.function.arx"
+            }
+          }
+        },
+        {
+          "name": "meta.class.definition.arx",
+          "match": "\\b(class)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.arx"
+            },
+            "2": {
+              "name": "entity.name.type.class.arx"
+            }
+          }
+        },
+        {
+          "name": "meta.type.alias.arx",
+          "match": "\\b(type)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.type.arx"
+            },
+            "2": {
+              "name": "entity.name.type.alias.arx"
+            }
+          }
+        },
+        {
           "name": "meta.variable.declaration.arx",
           "match": "\\b(?:const|var)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
           "captures": {
@@ -89,11 +227,11 @@
       "patterns": [
         {
           "name": "keyword.control.arx",
-          "match": "\\b(?:const|else|extern|fn|for|if|in|return|then|var)\\b"
+          "match": "\\b(?:assert|extern|import|return|class|const|while|else|then|for|var|fn|if|in)\\b"
         },
         {
           "name": "keyword.other.contextual.arx",
-          "match": "(?!)"
+          "match": "\\b(?:operator|binary|unary|from|type|as)\\b"
         }
       ]
     },
@@ -101,7 +239,15 @@
       "patterns": [
         {
           "name": "constant.language.arx",
-          "match": "\\b(?:true|false|null)\\b"
+          "match": "\\b(?:false|none|true)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.builtin.arx",
+          "match": "\\b(?:dataframe|timestamp|datetime|boolean|float16|float32|float64|series|string|tensor|int16|int32|int64|bool|char|date|int8|list|time|f16|f32|f64|i16|i32|i64|str|i8)\\b"
         }
       ]
     },
@@ -129,19 +275,27 @@
       "patterns": [
         {
           "name": "keyword.operator.arx",
-          "match": "(?:==|!=|<=|>=|->)"
+          "match": "(?:--|->|!=|&&|\\+\\+|<=|==|>=|\\|\\|)"
+        },
+        {
+          "name": "keyword.operator.word.arx",
+          "match": "\\b(?:and|or)\\b"
         },
         {
           "name": "keyword.operator.arx",
-          "match": "[=<>+\\-*/]"
+          "match": "[=<>+\\-*/!|]"
         }
       ]
     },
     "functions": {
       "patterns": [
         {
+          "name": "support.function.builtin.arx",
+          "match": "\\b(?:(?:isinstance|dataframe|print|range|cast))\\b(?=\\s*\\()"
+        },
+        {
           "name": "support.function.arx",
-          "match": "\\b(?!(?:const|else|extern|fn|for|if|in|return|then|var)\\b)((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*\\()"
+          "match": "\\b(?!\\b(?:dataframe|timestamp|datetime|operator|boolean|float16|float32|float64|assert|binary|extern|import|return|series|string|tensor|class|const|false|int16|int32|int64|unary|while|bool|char|date|else|from|int8|list|none|then|time|true|type|and|f16|f32|f64|for|i16|i32|i64|str|var|as|fn|i8|if|in|or)\\b)(?:(?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*\\()"
         }
       ]
     },
@@ -149,15 +303,19 @@
       "patterns": [
         {
           "name": "punctuation.separator.arx",
-          "match": "[:,;]"
+          "match": "[:,;.]"
+        },
+        {
+          "name": "punctuation.definition.annotation.begin.arx",
+          "match": "@(?=\\[|<)"
         },
         {
           "name": "punctuation.section.brackets.begin.arx",
-          "match": "[({[]"
+          "match": "[\\(\\{\\[]"
         },
         {
           "name": "punctuation.section.brackets.end.arx",
-          "match": "[)}\\]]"
+          "match": "[\\)\\}\\]]"
         }
       ]
     }

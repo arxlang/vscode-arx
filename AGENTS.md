@@ -1,389 +1,238 @@
-# AI Skill: Arx Contributor Guide
+# AI Skill: vscode-arx Contributor Guide
 
-This file is the shared operating manual for AI contributors working in `arx`.
-Use it to keep implementation style, review standards, and delivery quality
-consistent across different agents.
+This file is the shared operating manual for AI contributors working in
+`vscode-arx`, the highlight-only VS Code extension for the Arx language.
 
-## When To Use This Skill
+## When To Use This Guide
 
-Use this guidance for any change inside the Arx compiler repository:
+Use this guidance for any change inside this repository, especially changes to:
 
-- parser or lexer changes
-- language feature work
-- CLI behavior updates
-- docs/examples updates
-- tests, typing, and lint fixes
-- release/CI-related maintenance
+- `syntax/arx.syntax.json`
+- `syntaxes/arx.tmLanguage.json`
+- `scripts/build-grammar.mjs`
+- `scripts/sync-syntax.sh`
+- `language-configuration.json`
+- package/build/publish metadata
+- README, CI, and pre-commit maintenance
 
 ## Core Objectives
 
-1. Preserve existing language behavior unless the task explicitly changes it.
-2. Keep syntax, parser rules, docs, examples, and tests aligned.
-3. Keep code quality gates green (tests, mypy, ruff, pre-commit).
-4. Make minimal, targeted edits with clear intent.
+1. Keep the extension synchronized with the current Arx syntax manifest.
+2. Preserve the extension as highlight-only unless a task explicitly changes
+   scope.
+3. Regenerate generated grammar instead of hand-editing it.
+4. Target the latest manifest shape only; do not add legacy syntax-manifest
+   compatibility unless explicitly requested.
+5. Keep CI/pre-commit checks green.
+6. Make minimal, targeted edits with clear intent.
 
 ## Project Snapshot
 
-- Package: `arxlang`
-- Runtime: Python `>=3.10,<4`
-- Main architecture:
-  `source -> lexer -> parser -> irx.astx -> irx analysis/lowering -> LLVM`
-- Key dependencies:
-  - `irx.astx` as the AST facade Arx should emit
-  - `irx` for semantic analysis, lowering, and code generation
-  - `astx` as the upstream node library consumed through IRx
-  - `jsonschema` + `pyyaml` for Douki docstring validation
-- Docs stack: Quarto
+- Package: `vscode-arx`
+- Type: VS Code extension
+- Runtime code: none; this is a TextMate grammar and language configuration
+  package.
+- Main source of truth:
+  - upstream: `arx/packages/arx/src/arx/lexer/syntax.json`
+  - vendored here: `syntax/arx.syntax.json`
+- Generated grammar:
+  - `syntaxes/arx.tmLanguage.json`
+- Supported file extensions:
+  - `.x`
+  - `.arx`
 
 ## Repository Layout
 
-- `packages/arx/src/arx/`: compiler implementation
-- `packages/arx/tests/python/`: Python `pytest` coverage
-- `packages/arx/tests/arx/`: compiled Arx tests run via `arx test`
-- `examples/`: runnable language samples (`.x`)
-- `docs/`: project and language documentation
-- `packages/arx/src/arx/lexer/syntax.json`: lexical source-of-truth for editor
-  tooling
-- `.makim.yaml`: local task runner definitions
-- `.github/workflows/main.yaml`: CI pipeline
+- `package.json`: VS Code extension metadata, contributions, and npm scripts.
+- `language-configuration.json`: comments, brackets, and auto-closing pairs.
+- `syntax/arx.syntax.json`: vendored Arx lexical syntax manifest.
+- `syntaxes/arx.tmLanguage.json`: generated TextMate grammar consumed by VS Code.
+- `scripts/build-grammar.mjs`: manifest-to-TextMate generator.
+- `scripts/sync-syntax.sh`: clones Arx and syncs the syntax manifest.
+- `scripts/build.sh`: builds a VSIX package.
+- `scripts/publish.sh`: publishes to Marketplace and/or Open VSX.
+- `.github/workflows/main.yaml`: CI validation and VSIX packaging.
+- `.pre-commit-config.yaml`: local quality gates.
 
 ## Architecture And Responsibilities
 
-### Hard Boundary: Arx vs IRx
+### Hard Boundary: Extension vs Compiler
 
-- Arx owns surface syntax, lexing, parsing, CLI flow, tests, docs, and examples.
-- IRx owns the AST model, semantic analysis, lowering, and LLVM-facing codegen
-  behavior.
-- Do not add new AST or ASTx node classes in `arx`; use `irx.astx` nodes only.
-- Do not add new lowering logic in `arx` for language features; land that work
-  in IRx first, then consume it from Arx.
-- If a needed node or lowering hook does not exist, treat that as an IRx/ASTx
-  change request, not an Arx-local extension.
+- This repository owns editor highlighting, file associations, and basic VS Code
+  language configuration.
+- The Arx compiler repository owns language syntax, lexing, parsing, semantics,
+  and code generation.
+- Do not implement parser, compiler, semantic-analysis, or language-server logic
+  here unless explicitly requested.
+- When language syntax changes, update the canonical Arx syntax manifest first,
+  then sync this repository.
 
-### `packages/arx/src/arx/io.py`
+### Generated Grammar Rule
 
-- Maintains a shared text buffer used by lexer/parser flows.
-- `ArxIO.file_to_buffer` and `ArxIO.string_to_buffer` are standard entry points
-  for tests and compilation.
+- `syntax/arx.syntax.json` is the vendored manifest.
+- `syntaxes/arx.tmLanguage.json` is generated by `scripts/build-grammar.mjs`.
+- Avoid hand-editing `syntaxes/arx.tmLanguage.json`.
+- If highlighting is wrong, update either:
+  1. the upstream/vendored manifest, or
+  2. `scripts/build-grammar.mjs`,
+  then rerun `npm run build:grammar`.
 
-### `packages/arx/src/arx/lexer.py`
+## Current Arx Syntax Surfaces To Highlight
 
-- Defines `TokenKind`, `Token`, `TokenList`, and `Lexer`.
-- Tokenizes indentation-sensitive syntax and emits `TokenKind.indent` for
-  leading spaces at each logical line.
-- Parses docstrings delimited by triple backticks as `TokenKind.docstring`.
+Keep syntax highlighting aligned with the vendored manifest. Current surfaces
+include:
 
-### `packages/arx/src/arx/parser.py`
+- Significant indentation with 2-space indentation units.
+- Keywords:
+  - `assert`, `class`, `const`, `else`, `extern`, `fn`, `for`, `if`, `import`,
+    `in`, `return`, `then`, `var`, `while`
+- Contextual/operator-related words:
+  - `as`, `from`, `type`, `binary`, `unary`, `operator`
+- Literal keywords:
+  - `true`, `false`, `none`
+- Comments:
+  - `#` line comments
+- Strings and characters:
+  - double-quoted strings
+  - single-quoted character literals
+  - supported escapes: `\\`, `\n`, `\r`, `\t`, `\"`, `\'`
+- Docstrings:
+  - Douki/YAML content delimited by triple backticks
+- Numbers:
+  - decimal integers and decimal floats
+  - leading/trailing dot floats are supported
+  - numeric underscores and exponents are not currently specified
+- Operators:
+  - single-char: `=`, `<`, `>`, `+`, `-`, `*`, `/`, `.`, `:`, `,`, `;`, `@`,
+    `|`, `!`, parentheses, brackets, and braces
+  - multi-char: `==`, `!=`, `<=`, `>=`, `->`, `&&`, `||`, `++`, `--`
+  - word operators: `and`, `or`
+- Structural forms:
+  - annotations: `@[public, static]`
+  - template parameter blocks: `@<T: type>`
+  - explicit template calls with angle brackets
+  - grouped imports and relative imports
+  - type aliases: `type Name = type`
+  - dataframe and series type forms
+  - dataframe constructor and column access forms
 
-- Converts token stream into `irx.astx` nodes through the IRx facade.
-- Enforces indentation-based blocks (`INDENT_SIZE = 2`).
-- Handles module/function docstring placement and validation.
-- Raises `ParserException` for parser-specific errors.
-
-### `packages/arx/src/arx/docstrings.py`
-
-- Validates docstring content as Douki YAML.
-- Loads schema from `packages/arx/src/arx/schema/douki.json`.
-- Enforces non-empty YAML object and schema conformance.
-
-### `packages/arx/src/arx/codegen.py`
-
-- Contains the remaining Arx-specific builder adapter on top of IRx.
-- `ArxVisitor` extends `irx.builder.Visitor`.
-- `ArxBuilder` extends `irx.builder.Builder`.
-- Do not add new lowering behavior here for language features.
-- Prefer shrinking this layer over time by upstreaming generic or feature-level
-  lowering work into IRx.
-
-### `packages/arx/src/arx/main.py` and `packages/arx/src/arx/cli.py`
-
-- CLI argument handling and execution modes (`--show-tokens`, `--show-ast`,
-  `--show-llvm-ir`, compile, `--run`).
-- `ArxMain._get_astx()` orchestrates parse flow over input files.
-- `ArxMain` uses `arx.codegen.ArxBuilder` for Arx-specific codegen behavior.
-
-## Language Rules You Must Preserve
-
-Current language behavior (from parser/lexer/tests/syntax manifest):
-
-- Significant indentation, 2-space unit
-- Keywords: `fn`, `extern`, `return`, `if`, `else`, `for`, `in`, `var`, `const`
-- Numeric literals: decimal integer/float (single `.` max)
-- String/char/bool/none literals are supported
-- Comments: `#` line comments
-- Function definitions: `fn name(arg: type, ...) -> type` followed by indented
-  block
-- Function arguments must be explicitly typed
-- Variable declarations must be explicitly typed (`var name: type`)
-- Extern definitions: `extern name(arg: type, ...) -> type`
-- Control flow: `if/else`, `while`, `for ... in (...)`, count-style `for`
-- Range-style for header is `(start:end:step)` (tuple-style is rejected)
-- Builtins: `cast(value, type)` and `print(expr)`
-
-If you extend language syntax, update all affected surfaces:
-
-1. lexer/token definitions
-2. parser behavior
-3. tests
-4. `packages/arx/src/arx/lexer/syntax.json`
-5. docs and examples
-
-## Codegen Invariants (Arx + IRx)
-
-When changing `packages/arx/src/arx/codegen.py`, preserve these invariants:
-
-- `result_stack` discipline:
-  - never assume a value exists after statement-only or terminating branches
-  - only push values that are semantically produced
-- Terminator safety:
-  - do not emit instructions after a block terminator
-  - for `if` merges, create PHI nodes only when both incoming paths fall through
-    and types match
-- Build output must remain parseable by LLVM (`llvm.parse_assembly`)
-- Arx compatibility workarounds should stay local, small, and test-covered
-
-## Docstring Standard (Mandatory)
-
-Arx docstrings are Douki YAML inside triple backticks:
-
-```text
-
-```
-
-title: Example summary: Optional
-
-```
-
-```
-
-Rules enforced by parser:
-
-- Module docstring:
-  - first top-level statement only
-  - starts at line 1, column 1 (no leading spaces)
-- Class or member docstring:
-  - may appear inside class bodies before declarations
-  - must use Douki YAML and valid triple-backtick docstring syntax
-- Function docstring:
-  - first statement inside function block only
-  - abstract methods may use a docstring-only body so the docstring still lives
-    inside the method block
-
-Schema notes:
-
-- must be valid YAML mapping/object
-- must satisfy Douki schema (`title` is required)
-
-Current behavior:
-
-- docstrings are lexed and validated
-- docstrings are ignored in AST/IR output for now
-
-Repository policy:
-
-- Every committed `.x` file in this repository must start with a valid Douki
-  module docstring.
-- Classes and methods in committed `.x` files should also carry valid Douki
-  docstrings where the syntax supports them.
-- If you add a function docstring, it must also use Douki YAML and remain the
-  first statement in that function body.
-
-## Code Style And Standards
-
-### Design Principles
-
-- Apply SOLID principles where they improve clarity, testability, and change
-  safety.
-- Prefer a never-nest style: use guard clauses and early returns to keep control
-  flow flat when possible.
-- Avoid unnecessary or obvious comments; comment only non-trivial intent or
-  decisions that are not clear from code itself.
-
-### Formatting and static quality
-
-- Python style:
-  - 4-space indentation (`.editorconfig`)
-  - max line length: 79 (`ruff`)
-- Arx language examples:
-  - 2-space indentation
-- Ruff:
-  - run `ruff check` and `ruff format` (docs excluded by config)
-- Typing:
-  - `mypy` is strict (`check_untyped_defs = true`, `strict = true`)
-- Security/dead code gates in pre-commit:
-  - `bandit`, `vulture`, `mccabe`
-
-### YAML configuration rule
-
-- Never use heredocs inside YAML files in this repository.
-- This applies to CI and automation configs such as `.github/workflows/*.yaml`
-  and `.makim.yaml`.
-- In YAML-backed task/config files, prefer plain shell commands or direct
-  Python/xonsh statements instead of embedded `<<EOF` / `<<'PY'` blocks.
-
-### Python docstring convention in this repo
-
-- Python docstrings are Douki-style content blocks (for example `title: ...`).
-- Keep docstrings present and consistent in new/updated public symbols.
-- `pre-commit` runs `douki sync`; keep this passing.
-
-### Error handling
-
-- Parser-level user-facing parse errors: `ParserException`
-- Lexer-specific failures: `LexerError` (with source location)
-- Avoid raising generic `Exception` for new parser/lexer error paths.
+If the manifest changes, update this section and the generated grammar together.
 
 ## Tooling And Commands
 
-Environment setup:
+High-value local commands:
 
 ```bash
-mamba env create --file conda/dev.yaml
-conda activate arx
-poetry install
+# regenerate generated grammar
+npm run build:grammar
+
+# check generated grammar is in sync
+npm run check:grammar
+
+# sync manifest from the upstream Arx repo and rebuild grammar
+npm run sync:syntax
+
+# build a VSIX package
+npm run build:vsix
+
+# run pre-commit hooks
+pre-commit run --all-files
 ```
 
-High-value commands:
+Environment setup is intentionally light. `conda.yaml` provides Node.js,
+Python, and pre-commit for local development.
+
+## Syncing From A Local Arx Checkout
+
+When the latest syntax is available locally, prefer the local checkout over
+remote GitHub. From this repository:
 
 ```bash
-# tests
-pytest packages/arx/tests/python -q
-arx test
-makim arx.test-compiled
-
-# strict typing
-mypy src
-
-# lint/format
-ruff check src tests
-ruff format src tests
-
-# full lint stack used by project
-makim all.lint
-
-# CI-like local run
-makim all.ci
-
-# docs
-makim docs.build
+cp ../arx/packages/arx/src/arx/lexer/syntax.json syntax/arx.syntax.json
+npm run build:grammar
+npm run check:grammar
 ```
 
-Codegen-focused checks:
+If the local Arx checkout is elsewhere, copy from its
+`packages/arx/src/arx/lexer/syntax.json` path.
 
-```bash
-# translate-path regressions (no linker required)
-pytest -q packages/arx/tests/python/test_codegen_ast_output.py
+## CI Contract
 
-# build/run-path checks (requires clang)
-pytest -q packages/arx/tests/python/test_codegen_file_object.py
-```
+GitHub Actions (`.github/workflows/main.yaml`) validates:
 
-Smoke examples:
+- PR branch freshness.
+- shell script syntax.
+- generated grammar sync via `npm run check:grammar`.
+- VSIX packaging when package metadata is ready.
 
-```bash
-makim arx.test-smoke
-```
+Keep local changes compatible with those checks.
 
-Note: `arx --show-ast` may require `mermaid-ascii` installed by your `astx`
-environment.
+## Pre-commit Contract
 
-## CI Contract (What Must Stay Green)
+Pre-commit runs:
 
-GitHub Actions (`.github/workflows/main.yaml`) runs:
+- JSON/YAML/basic whitespace hooks.
+- grammar sync checks for syntax/generator changes.
+- shell syntax checks for scripts.
 
-- tests on Python 3.10 to 3.14 (ubuntu)
-- smoke tests
-- syntax checks
-- lint/pre-commit checks
-
-Do not merge feature work that only passes on one Python version assumption.
-
-## Documentation Contract
-
-When behavior changes, update docs in same PR:
-
-- language overview and getting-started examples
-- `docs/library/*` for syntax/placement rules
-- API docs are generated for Quarto via `scripts/gen_api_docs.py`
-
-If embedding Arx docstrings inside Markdown code examples, prefer quadruple
-fences around the code block to safely include inner triple backticks.
-
-## Testing Contract
-
-- Prefer targeted tests near changed behavior.
-- For parser or syntax changes: add/adjust parser tests and at least one
-  example.
-- Keep Python tests under `packages/arx/tests/python/` and compiled Arx tests
-  under `packages/arx/tests/arx/`.
-- New or updated `.x` tests must include valid Douki module docstrings.
-- For codegen/control-flow changes:
-  - add at least one translate-path test
-    (`packages/arx/tests/python/test_codegen_ast_output.py`)
-  - add build/run assertions when behavior depends on linked execution and
-    toolchain is available.
-
-## Examples Contract
-
-- Keep `examples/*.x` valid under current parser rules.
-- Keep examples synchronized with docs examples.
-- For now, examples should include valid Douki module/function docstrings.
+Run `pre-commit run --all-files` when practical. If a check cannot be run,
+state that clearly in final output.
 
 ## Change Playbooks
 
-### Adding/changing lexer tokens
+### Updating syntax from Arx
 
-1. Update `TokenKind` and keyword maps.
-2. Adjust lexing logic and location behavior.
-3. Add/adjust `tests/test_lexer.py` cases.
-4. Update `packages/arx/src/arx/lexer/syntax.json` if lexical spec changed.
-5. Update docs/examples.
+1. Copy or sync `packages/arx/src/arx/lexer/syntax.json` into
+   `syntax/arx.syntax.json`.
+2. Review manifest shape changes.
+3. Update `scripts/build-grammar.mjs` if new syntax categories need highlighting.
+4. Run `npm run build:grammar`.
+5. Run `npm run check:grammar`.
+6. Commit both `syntax/arx.syntax.json` and `syntaxes/arx.tmLanguage.json`.
 
-### Adding/changing parser rules
+### Adding or changing highlighting rules
 
-1. Implement parse behavior in `parser.py`.
-2. Emit only existing `irx.astx` nodes; if the node shape is missing, upstream
-   it to IRx/ASTx instead of inventing an Arx-local node.
-3. Raise `ParserException` with clear messages.
-4. Add parser tests (`tests/test_parser.py`).
-5. Validate existing examples still parse.
-6. Update docs and examples.
+1. Prefer manifest-driven rules.
+2. Keep generated grammar deterministic.
+3. Add narrowly scoped TextMate patterns.
+4. Avoid broad regexes that incorrectly capture comments, docstrings, or string
+   contents.
+5. Regenerate and check grammar.
 
-### Changing docstring behavior
+### Changing file associations or language configuration
 
-1. Update `docstrings.py` and/or parser integration.
-2. Add valid and invalid schema tests.
-3. Update `docs/library/docstrings.md` and related examples.
-4. Keep AST/IR behavior explicit if unchanged.
+1. Update `package.json` language contributions.
+2. Update `language-configuration.json` if brackets/comments/pairs change.
+3. Update README when user-visible behavior changes.
+4. Build/check the grammar if syntax files are touched.
 
-## Contributor Workflow Expectations
+### Build or publish maintenance
 
-1. Make minimal focused changes.
-2. Add/update tests for behavior changes.
-3. Run local quality checks before finalizing.
-4. Keep docs/examples in sync.
-5. Use conventional commits in PR title (project uses semantic-release and
-   squash-merge).
+1. Keep `scripts/build.sh` and `scripts/publish.sh` shellcheck-friendly where
+   possible and at least `bash -n` clean.
+2. Do not commit secrets or tokens.
+3. Keep publish metadata in `package.json` valid for Marketplace/Open VSX.
 
 ## PR Review Checklist For AI Agents
 
-Before submitting final output, verify:
+Before final output, verify:
 
-- [ ] behavior change is covered by tests
-- [ ] parser/lexer updates reflected in docs and examples
-- [ ] `mypy` passes for touched code
-- [ ] `ruff` and pre-commit hooks pass (or clearly report blockers)
-- [ ] no unrelated refactors or formatting churn
-- [ ] error messages are explicit and actionable
+- [ ] Syntax manifest and generated grammar are in sync.
+- [ ] `npm run check:grammar` passes, or blockers are reported.
+- [ ] Script changes pass `bash -n` where applicable.
+- [ ] README/AGENTS guidance is updated for syntax behavior changes.
+- [ ] No unrelated refactors or formatting churn were introduced.
+- [ ] Generated files were regenerated rather than manually edited.
 
 ## Non-Goals / Avoid
 
-- Do not invent unsupported syntax in examples.
-- Do not use heredocs inside YAML files such as CI workflows or Makim
-  configuration.
-- Do not create Arx-owned AST/ASTx node types.
-- Do not add new lowering or LLVM feature logic directly in `arx`; upstream it
-  to IRx.
-- Do not update unrelated files to "clean up" style.
-- Do not bypass schema validation for docstrings.
-- Do not leave parser, docs, and examples out of sync.
+- Do not add compiler/parser/language-server behavior here by default.
+- Do not invent Arx syntax in examples or grammar rules beyond the manifest.
+- Do not keep compatibility branches for old Arx syntax-manifest layouts unless
+  explicitly requested.
+- Do not leave `syntax/arx.syntax.json` and `syntaxes/arx.tmLanguage.json` out
+  of sync.
+- Do not use remote repository state when a local Arx checkout has the relevant
+  latest syntax.
+- Do not update unrelated files to clean up style.
+- Do not commit tokens, generated cache directories, or local-only artifacts.
