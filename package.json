@@ -18,7 +18,7 @@
     "language-configuration.json",
     "syntaxes/**",
     "syntax/arx.syntax.json",
-    "images/icon.png",
+    "images/**",
     "README.md",
     "LICENSE"
   ],
@@ -43,8 +43,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./images/icon.png",
-          "dark": "./images/icon.png"
+          "light": "./images/arx-file-icon-light.png",
+          "dark": "./images/arx-file-icon-dark.png"
         }
       }
     ],

@@ -21,8 +21,8 @@ Highlight-only VS Code extension for the **Arx** programming language.
   - auto-closing and surrounding pairs
 - Arx logo assets:
   - marketplace extension icon (`images/icon.png`)
-  - the same Arx logo as the contributed language icon for `.x` and `.arx`
-    files in VS Code file icon themes that use language icons
+  - transparent monochrome file icons for `.x` and `.arx` files: black for
+    light themes and white for dark themes
 
 This extension intentionally has no language server, commands, or runtime extension code.
 
