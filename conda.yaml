@@ -9,3 +9,4 @@ dependencies:
   - pip:
     - pre-commit
     - arxlang==1.23.1
+    - pytest

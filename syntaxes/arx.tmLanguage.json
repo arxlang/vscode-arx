@@ -19,13 +19,13 @@
       "include": "#declarations"
     },
     {
+      "include": "#functions"
+    },
+    {
       "include": "#keywords"
     },
     {
       "include": "#constants"
-    },
-    {
-      "include": "#functions"
     },
     {
       "include": "#types"
@@ -257,7 +257,7 @@
       "patterns": [
         {
           "name": "support.type.builtin.arx",
-          "match": "\\b(?:dataframe|timestamp|datetime|boolean|float16|float32|float64|series|string|tensor|int16|int32|int64|bool|char|date|int8|list|time|f16|f32|f64|i16|i32|i64|str|i8)\\b"
+          "match": "\\b(?:dataframe|timestamp|datetime|boolean|float16|float32|float64|series|string|tensor|int16|int32|int64|bool|char|date|int8|list|none|time|f16|f32|f64|i16|i32|i64|str|i8)\\b"
         }
       ]
     },
@@ -301,7 +301,7 @@
       "patterns": [
         {
           "name": "support.function.builtin.arx",
-          "match": "\\b(?:(?:isinstance|dataframe|print|range|cast))\\b(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
+          "match": "\\b(?:(?:isinstance|dataframe|print|range|cast|type))\\b(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
         },
         {
           "name": "support.function.arx",

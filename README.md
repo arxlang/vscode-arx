@@ -34,6 +34,9 @@ The vendored manifest is used to generate:
 
 - `syntaxes/arx.tmLanguage.json`
 
+Builtin types, builtin functions, and declaration modifiers should come from
+the syntax manifest instead of being hardcoded in the grammar generator.
+
 ## Local Development
 
 1. Open this repo in VS Code.

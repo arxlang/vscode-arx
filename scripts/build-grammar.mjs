@@ -9,48 +9,6 @@ const root = path.resolve(__dirname, "..");
 const manifestPath = path.join(root, "syntax", "arx.syntax.json");
 const grammarPath = path.join(root, "syntaxes", "arx.tmLanguage.json");
 
-const builtinTypes = [
-  "bool",
-  "boolean",
-  "char",
-  "dataframe",
-  "date",
-  "datetime",
-  "f16",
-  "f32",
-  "f64",
-  "float16",
-  "float32",
-  "float64",
-  "i8",
-  "i16",
-  "i32",
-  "i64",
-  "int8",
-  "int16",
-  "int32",
-  "int64",
-  "list",
-  "series",
-  "str",
-  "string",
-  "tensor",
-  "time",
-  "timestamp"
-];
-
-const builtinFunctions = ["cast", "dataframe", "isinstance", "print", "range"];
-const declarationModifiers = [
-  "abstract",
-  "constant",
-  "extern",
-  "mutable",
-  "private",
-  "protected",
-  "public",
-  "static"
-];
-
 function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -172,6 +130,9 @@ function validateManifest(spec) {
     "operators.logical",
     "operators.type_union",
     "operators.punctuation",
+    "structural_forms.annotations.modifiers",
+    "builtins.types",
+    "builtins.functions",
     "brackets"
   ].forEach((path) => requireArray(spec, path));
 
@@ -190,7 +151,9 @@ function validateManifest(spec) {
     "numbers.underscores",
     "numbers.exponent",
     "whitespace",
-    "structural_forms"
+    "structural_forms",
+    "structural_forms.annotations",
+    "builtins"
   ].forEach((path) => requireObject(spec, path));
 
   if (spec.language !== "arx") {
@@ -200,6 +163,18 @@ function validateManifest(spec) {
 
 function literalWords(spec) {
   return spec.literals.keywords;
+}
+
+function builtinTypes(spec) {
+  return spec.builtins.types;
+}
+
+function builtinFunctions(spec) {
+  return spec.builtins.functions;
+}
+
+function declarationModifiers(spec) {
+  return spec.structural_forms.annotations.modifiers;
 }
 
 function lineCommentDelimiters(spec) {
@@ -346,6 +321,9 @@ function buildGrammar(spec) {
   const contextualKeywords = [...spec.keywords.contextual];
   const literals = literalWords(spec);
   const wordOperators = spec.operators.word_operators;
+  const builtinTypeWords = builtinTypes(spec);
+  const builtinFunctionWords = builtinFunctions(spec);
+  const declarationModifierWords = declarationModifiers(spec);
   const identifierPattern = spec.identifiers.pattern;
   const functionCallLookahead = "(?=\\s*(?:<[^>\\n]+>\\s*)?\\()";
   const nonFunctionWords = [
@@ -353,7 +331,7 @@ function buildGrammar(spec) {
     ...contextualKeywords,
     ...literals,
     ...wordOperators,
-    ...builtinTypes
+    ...builtinTypeWords
   ];
 
   const grammar = {
@@ -367,9 +345,9 @@ function buildGrammar(spec) {
       { include: "#strings" },
       { include: "#annotations" },
       { include: "#declarations" },
+      { include: "#functions" },
       { include: "#keywords" },
       { include: "#constants" },
-      { include: "#functions" },
       { include: "#types" },
       { include: "#numbers" },
       { include: "#operators" },
@@ -426,7 +404,7 @@ function buildGrammar(spec) {
         patterns: [
           {
             name: "storage.modifier.arx",
-            match: wordRegex(declarationModifiers)
+            match: wordRegex(declarationModifierWords)
           }
         ]
       },
@@ -498,7 +476,7 @@ function buildGrammar(spec) {
         patterns: [
           {
             name: "support.type.builtin.arx",
-            match: wordRegex(builtinTypes)
+            match: wordRegex(builtinTypeWords)
           }
         ]
       },
@@ -530,7 +508,7 @@ function buildGrammar(spec) {
           {
             name: "support.function.builtin.arx",
             match:
-              `\\b(?:${alternationRegex(builtinFunctions)})\\b` +
+              `\\b(?:${alternationRegex(builtinFunctionWords)})\\b` +
               functionCallLookahead
           },
           {

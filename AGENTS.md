@@ -76,6 +76,9 @@ Use this guidance for any change inside this repository, especially changes to:
   1. the upstream/vendored manifest, or
   2. `scripts/build-grammar.mjs`,
   then rerun `npm run build:grammar`.
+- Keep builtin types, builtin functions, and annotation modifiers manifest-driven
+  through `syntax/arx.syntax.json`; do not hardcode those lists in the grammar
+  generator.
 
 ## Current Arx Syntax Surfaces To Highlight
 
