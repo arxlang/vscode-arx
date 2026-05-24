@@ -1,6 +1,12 @@
 # Changelog
 ---
 
+## [0.2.2](https://github.com/arxlang/vscode-arx/compare/0.2.1...0.2.2) (2026-05-24)
+
+### Bug Fixes
+
+* Fix package author's info ([d6cb5b6](https://github.com/arxlang/vscode-arx/commit/d6cb5b67a1a0fd588cc953ee09e76f930923b856))
+
 ## [0.2.1](https://github.com/arxlang/vscode-arx/compare/0.2.0...0.2.1) (2026-05-24)
 
 ### Bug Fixes
