@@ -250,7 +250,26 @@ function docstringPatterns(spec) {
       end: delimiter,
       endCaptures: {
         0: { name: "punctuation.definition.comment.end.arx" }
-      }
+      },
+      patterns: [
+        {
+          name: "meta.mapping.key-value.douki.arx",
+          match: "^(\\s*)([A-Za-z_][\\w-]*)(\\s*:)(\\s*)(.*?)(\\s*)$",
+          captures: {
+            2: { name: "comment.block.documentation.key.arx" },
+            3: { name: "punctuation.separator.key-value.douki.arx" },
+            5: { name: "comment.block.documentation.value.arx" }
+          }
+        },
+        {
+          name: "meta.sequence.item.douki.arx",
+          match: "^(\\s*-\\s+)(.*?)(\\s*)$",
+          captures: {
+            1: { name: "punctuation.definition.list-item.douki.arx" },
+            2: { name: "comment.block.documentation.value.arx" }
+          }
+        }
+      ]
     }
   ];
 }
@@ -258,7 +277,11 @@ function docstringPatterns(spec) {
 function commentPatterns(spec) {
   return lineCommentDelimiters(spec).map((delimiter) => ({
     name: "comment.line.number-sign.arx",
-    match: `${escapeRegex(delimiter)}.*$`
+    match: `(${escapeRegex(delimiter)})(.*)$`,
+    captures: {
+      1: { name: "punctuation.definition.comment.arx" },
+      2: { name: "comment.line.number-sign.content.arx" }
+    }
   }));
 }
 

@@ -6,7 +6,8 @@ Highlight-only VS Code extension for the **Arx** programming language.
 
 - TextMate syntax highlighting (`source.arx`) for current Arx syntax:
   - Douki/YAML docstrings delimited by triple backticks, rendered with
-    subdued documentation-comment scopes instead of noisy embedded YAML scopes
+    subdued documentation-comment scopes; keys stay muted while values use a
+    slightly lighter gray-blue scope
   - `#` line comments
   - single-character literals and double-quoted strings
   - numeric, boolean, and `none` literals
@@ -15,7 +16,7 @@ Highlight-only VS Code extension for the **Arx** programming language.
   - annotations (`@[...]`) and template parameter blocks (`@<...>`)
   - current symbolic and word operators
 - Basic language configuration:
-  - line comments (`#`)
+  - line comments (`#`) with a slightly lighter Arx-specific comment-text scope
   - brackets (`()`, `{}`, `[]`)
   - auto-closing and surrounding pairs
 - Arx logo assets:

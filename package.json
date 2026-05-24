@@ -54,7 +54,34 @@
         "scopeName": "source.arx",
         "path": "./syntaxes/arx.tmLanguage.json"
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": [
+              "comment.block.documentation.arx",
+              "comment.block.documentation.key.arx",
+              "punctuation.definition.comment.begin.arx",
+              "punctuation.definition.comment.end.arx",
+              "punctuation.separator.key-value.douki.arx"
+            ],
+            "settings": {
+              "foreground": "#6E7681"
+            }
+          },
+          {
+            "scope": [
+              "comment.line.number-sign.content.arx",
+              "comment.block.documentation.value.arx"
+            ],
+            "settings": {
+              "foreground": "#8FA7B3"
+            }
+          }
+        ]
+      }
+    }
   },
   "scripts": {
     "sync:syntax": "bash ./scripts/sync-syntax.sh",
