@@ -1,6 +1,16 @@
 # Changelog
 ---
 
+## [0.3.0](https://github.com/arxlang/vscode-arx/compare/0.2.3...0.3.0) (2026-05-24)
+
+### Features
+
+* Include arxlang logo in the package ([94504b1](https://github.com/arxlang/vscode-arx/commit/94504b1fb976271d29d30f19670244618a58fec7))
+
+### Bug Fixes
+
+* Improve docstrings readability ([653b34b](https://github.com/arxlang/vscode-arx/commit/653b34b26545c512b39259c340d7fc22507c8337))
+
 ## [0.2.3](https://github.com/arxlang/vscode-arx/compare/0.2.2...0.2.3) (2026-05-24)
 
 ### Bug Fixes
