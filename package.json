@@ -60,5 +60,9 @@
     "publish:all": "bash ./scripts/publish.sh --all --no-dependencies",
     "release:dry-run": "bash ./scripts/semantic-release.sh --dry-run",
     "release:ci": "bash ./scripts/semantic-release.sh --ci"
+  },
+  "author": {
+    "name": "Ivan Ogasawara",
+    "email": "ivan.ogasawara@gmail.com"
   }
 }
