@@ -1,0 +1,56 @@
+```
+title: Arx highlighter-only lexical scratchpad
+summary: Contains reserved or edge syntax tokens that are useful for grammar inspection.
+```
+
+# This file is intentionally not a compile/run fixture. It exists so the
+# TextMate grammar can be inspected against the full manifest token surface.
+
+# Reserved and contextual words that may not all be accepted by the parser yet.
+const build_number: int64 = 42
+if ready then print("then keyword")
+binary operator +(lhs: i32, rhs: i32) -> i32
+unary operator !(value: bool) -> bool
+
+@[extern]
+fn native_method_shape(self) -> i32
+
+# All manifest builtin type spellings in compact declarations.
+var i8_value: i8 = cast(1, i8)
+var i16_value: i16 = cast(2, i16)
+var i32_value: i32 = cast(3, i32)
+var i64_value: i64 = cast(4, i64)
+var int8_value: int8 = cast(5, int8)
+var int16_value: int16 = cast(6, int16)
+var int32_value: int32 = cast(7, int32)
+var int64_value: int64 = cast(8, int64)
+var f16_value: f16 = cast(1.5, f16)
+var f32_value: f32 = cast(.25, f32)
+var f64_value: f64 = cast(10., f64)
+var float16_value: float16 = cast(2.5, float16)
+var float32_value: float32 = cast(3.5, float32)
+var float64_value: float64 = cast(4.5, float64)
+var bool_value: bool = true && false || !false
+var boolean_value: boolean = true and false or true
+var none_value: none = none
+var str_value: str = "double quoted string"
+var string_value: string = "escaped backslash \\, newline \n, tab \t, and quote \""
+var char_value: char = '\n'
+var datetime_value: datetime = datetime("2026-05-24T12:00:00")
+var timestamp_value: timestamp = timestamp("2026-05-24T12:00:00")
+var date_value: date
+var time_value: time
+var list_value: list[i32] = [1, 2, 3]
+var series_value: series[f64] = rows.score
+var tensor_value: tensor[i32, 2, 2] = [[1, 2], [3, 4]]
+var dataframe_value: dataframe[id: i32, score: f64] = dataframe({
+  id: [1, 2],
+  score: [0.5, 1.0],
+})
+
+# Symbolic operators and punctuation tokens from the syntax manifest.
+var comparisons: bool = (1 < 2) && (2 <= 2) && (3 > 2) && (3 >= 3)
+var equality: bool = (1 == 1) && (1 != 2)
+var arithmetic: i32 = ((1 + 2) - 3) * 4 / 2
+var prefix_ops: i32 = ++arithmetic + --arithmetic
+var member_and_index: i32 = dataframe_value.nrows() + list_value[0]
