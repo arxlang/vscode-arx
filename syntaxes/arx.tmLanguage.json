@@ -44,25 +44,20 @@
     "docstrings": {
       "patterns": [
         {
-          "name": "string.quoted.docstring.arx",
-          "contentName": "meta.embedded.block.yaml.arx",
+          "name": "comment.block.documentation.arx",
+          "contentName": "comment.block.documentation.content.arx",
           "begin": "```",
           "beginCaptures": {
             "0": {
-              "name": "punctuation.definition.string.begin.arx"
+              "name": "punctuation.definition.comment.begin.arx"
             }
           },
           "end": "```",
           "endCaptures": {
             "0": {
-              "name": "punctuation.definition.string.end.arx"
+              "name": "punctuation.definition.comment.end.arx"
             }
-          },
-          "patterns": [
-            {
-              "include": "source.yaml"
-            }
-          ]
+          }
         }
       ]
     },

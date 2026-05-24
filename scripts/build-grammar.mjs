@@ -241,17 +241,16 @@ function docstringPatterns(spec) {
   const delimiter = escapeRegex(docstrings.delimiter);
   return [
     {
-      name: "string.quoted.docstring.arx",
-      contentName: "meta.embedded.block.yaml.arx",
+      name: "comment.block.documentation.arx",
+      contentName: "comment.block.documentation.content.arx",
       begin: delimiter,
       beginCaptures: {
-        0: { name: "punctuation.definition.string.begin.arx" }
+        0: { name: "punctuation.definition.comment.begin.arx" }
       },
       end: delimiter,
       endCaptures: {
-        0: { name: "punctuation.definition.string.end.arx" }
-      },
-      patterns: [{ include: "source.yaml" }]
+        0: { name: "punctuation.definition.comment.end.arx" }
+      }
     }
   ];
 }
