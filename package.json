@@ -2,7 +2,7 @@
   "name": "vscode-arx",
   "displayName": "ArxLang",
   "description": "Highlight-only VS Code extension for the Arx programming language.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "arxlang",
   "license": "MIT",
   "repository": {

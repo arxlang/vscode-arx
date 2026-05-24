@@ -1,6 +1,12 @@
 # Changelog
 ---
 
+## [0.3.2](https://github.com/arxlang/vscode-arx/compare/0.3.1...0.3.2) (2026-05-24)
+
+### Bug Fixes
+
+* Fix icons for .x files for dark/light mode ([2c6c0cd](https://github.com/arxlang/vscode-arx/commit/2c6c0cd64ca3a43d611f7bc6d68be438bedfbea9))
+
 ## [0.3.1](https://github.com/arxlang/vscode-arx/compare/0.3.0...0.3.1) (2026-05-24)
 
 ### Bug Fixes
