@@ -7,50 +7,137 @@ summary: Contains reserved or edge syntax tokens that are useful for grammar ins
 # TextMate grammar can be inspected against the full manifest token surface.
 
 # Reserved and contextual words that may not all be accepted by the parser yet.
-const build_number: int64 = 42
+build_number: const :: int64 = 42
+mutable_count: var :: auto = 0
 if ready then print("then keyword")
+fn public_shape(lhs: const :: i32, rhs: i32) -> public :: i32:
+  return lhs + rhs
+fn private_shape(value: i32) -> private :: i32:
+  return value
+extern native_shape(value: i32) -> public :: i32
 binary operator +(lhs: i32, rhs: i32) -> i32
 unary operator !(value: bool) -> bool
 
-@[extern]
-fn native_method_shape(self) -> i32
+# Reserved keywords that are useful to check even when a parser path is not yet
+# available; keep this sketchpad separate from compiler-backed examples.
+try:
+  for item in values:
+    if item > 0:
+      continue
+    elif item == 0:
+      break
+    else:
+      raise error
+except Error:
+  print(error)
+finally:
+  with resource:
+    print(resource)
 
-# All manifest builtin type spellings in compact declarations.
-var i8_value: i8 = cast(1, i8)
-var i16_value: i16 = cast(2, i16)
-var i32_value: i32 = cast(3, i32)
-var i64_value: i64 = cast(4, i64)
-var int8_value: int8 = cast(5, int8)
-var int16_value: int16 = cast(6, int16)
-var int32_value: int32 = cast(7, int32)
-var int64_value: int64 = cast(8, int64)
-var f16_value: f16 = cast(1.5, f16)
-var f32_value: f32 = cast(.25, f32)
-var f64_value: f64 = cast(10., f64)
-var float16_value: float16 = cast(2.5, float16)
-var float32_value: float32 = cast(3.5, float32)
-var float64_value: float64 = cast(4.5, float64)
-var bool_value: bool = true && false || !false
-var boolean_value: boolean = true and false or true
-var none_value: none = none
-var str_value: str = "double quoted string"
-var string_value: string = "escaped backslash \\, newline \n, tab \t, and quote \""
-var char_value: char = '\n'
-var datetime_value: datetime = datetime("2026-05-24T12:00:00")
-var timestamp_value: timestamp = timestamp("2026-05-24T12:00:00")
-var date_value: date
-var time_value: time
-var list_value: list[i32] = [1, 2, 3]
-var series_value: series[f64] = rows.score
-var tensor_value: tensor[i32, 2, 2] = [[1, 2], [3, 4]]
-var dataframe_value: dataframe[id: i32, score: f64] = dataframe({
+# Method/member modifier spellings from declaration metadata.
+class ModifierShapes:
+  field: public :: i32 = 1
+  state: protected :: i32 = 2
+  cached: static :: bool = true
+  mutable_field: var :: i32 = 3
+  constant_field: const :: i32 = 4
+  external_field: extern :: i32 = 5
+  fn abstract_shape(self) -> abstract :: i32:
+    return 0
+  fn static_shape(self) -> static :: i32:
+    return 0
+
+# Operator forms from the current manifest.
+counter: var :: i32 = 0
+counter += 1
+counter -= 1
+counter *= 2
+counter /= 2
+counter %= 2
+not_value: bool = not false
+remainder: i32 = 3 % 2
+qualified_name: i32 = namespace::member
+
+# Builtin type spellings, including current unsigned, file, and Arrow types.
+i8_value: i8 = cast(1, i8)
+i16_value: i16 = cast(2, i16)
+i32_value: i32 = cast(3, i32)
+i64_value: i64 = cast(4, i64)
+u8_value: u8 = cast(5, u8)
+u16_value: u16 = cast(6, u16)
+u32_value: u32 = cast(7, u32)
+u64_value: u64 = cast(8, u64)
+int8_value: int8 = cast(5, int8)
+int16_value: int16 = cast(6, int16)
+int32_value: int32 = cast(7, int32)
+int64_value: int64 = cast(8, int64)
+f16_value: f16 = cast(1.5, f16)
+f32_value: f32 = cast(.25, f32)
+f64_value: f64 = cast(10., f64)
+float16_value: float16 = cast(2.5, float16)
+float32_value: float32 = cast(3.5, float32)
+float64_value: float64 = cast(4.5, float64)
+bool_value: bool = true && false || !false
+boolean_value: boolean = true and false or true
+none_value: none = none
+file_value: file = open("data.bin")
+bytes_value: bytes = bytes("data")
+str_value: str = "double quoted string"
+string_value: string = "escaped backslash \\, newline \n, tab \t, and quote \""
+large_string_value: large_string = string_value
+binary_value: binary = bytes_value
+large_binary_value: large_binary = bytes_value
+char_value: char = '\n'
+datetime_value: datetime = datetime("2026-05-24T12:00:00")
+timestamp_value: timestamp = timestamp("2026-05-24T12:00:00")
+date_value: date
+time_value: time
+list_value: list[i32] = [1, 2, 3]
+sequence_value: sequence[i32] = list_value
+nullable_value: nullable[i32] = none
+decimal128_value: decimal128 = 1
+decimal256_value: decimal256 = 2
+arrow_list_value: arrow_list[i32] = list_value
+large_list_value: large_list[i32] = list_value
+fixed_list_value: fixed_list[i32, 3] = list_value
+dictionary_value: dictionary[str, i32] = none
+arrow_struct_value: arrow_struct = none
+arrow_map_value: arrow_map[str, i32] = none
+series_value: series[f64] = rows.score
+tensor_value: tensor[i32, 2, 2] = [[1, 2], [3, 4]]
+dataframe_value: dataframe[id: i32, score: f64] = dataframe({
   id: [1, 2],
   score: [0.5, 1.0],
 })
 
 # Symbolic operators and punctuation tokens from the syntax manifest.
-var comparisons: bool = (1 < 2) && (2 <= 2) && (3 > 2) && (3 >= 3)
-var equality: bool = (1 == 1) && (1 != 2)
-var arithmetic: i32 = ((1 + 2) - 3) * 4 / 2
-var prefix_ops: i32 = ++arithmetic + --arithmetic
-var member_and_index: i32 = dataframe_value.nrows() + list_value[0]
+comparisons: bool = (1 < 2) && (2 <= 2) && (3 > 2) && (3 >= 3)
+equality: bool = (1 == 1) && (1 != 2)
+arithmetic: i32 = ((1 + 2) - 3) * 4 / 2 % 3
+prefix_ops: i32 = ++arithmetic + --arithmetic
+member_and_index: i32 = dataframe_value.nrows() + list_value[0]
+
+# Builtin classes and functions added to the main syntax manifest.
+file_class_value: File = File("data.bin")
+byte_count: i32 = len(bytes_value)
+integer_value: i32 = int("12")
+character_code: i32 = ord('A')
+wrapped_value: i32 = wrapping_cast(300, i32)
+wrapped_sum: i32 = wrapping_add(1, 2)
+wrapped_difference: i32 = wrapping_sub(3, 1)
+wrapped_product: i32 = wrapping_mul(2, 3)
+nullable_series: series[i32 | none] = fill_null(rows.score, 0)
+missing: bool = is_null(none)
+series_total: f64 = series_sum(rows.score)
+series_low: f64 = series_min(rows.score)
+series_high: f64 = series_max(rows.score)
+series_average: f64 = series_mean(rows.score)
+series_size: i64 = series_count(rows.score)
+has_values: bool = series_any(rows.active)
+all_values: bool = series_all(rows.active)
+created_date: date = date("2026-05-24")
+current_time: time = time("12:00:00")
+list_copy: list[i32] = list([1, 2, 3])
+is_integer: bool = isinstance(integer_value, i32)
+sample_range: list[i32] = range(0, 3)
+runtime_type: str = type(file_class_value)

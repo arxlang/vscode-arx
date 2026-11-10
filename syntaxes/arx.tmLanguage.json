@@ -197,7 +197,7 @@
       "patterns": [
         {
           "name": "storage.modifier.arx",
-          "match": "\\b(?:protected|abstract|constant|mutable|private|extern|public|static)\\b"
+          "match": "\\b(?:protected|abstract|private|public)\\b"
         }
       ]
     },
@@ -253,13 +253,19 @@
         },
         {
           "name": "meta.variable.declaration.arx",
-          "match": "\\b(const|var)\\s+((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)\\b",
+          "match": "(^[ \\t]*)((?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)([ \\t]*)(:)([ \\t]*)(?:((?:protected|abstract|private|extern|public|static|const|var))[ \\t]*(::)[ \\t]*)?",
           "captures": {
-            "1": {
-              "name": "keyword.control.arx"
-            },
             "2": {
               "name": "variable.other.definition.arx"
+            },
+            "4": {
+              "name": "punctuation.separator.arx"
+            },
+            "6": {
+              "name": "storage.modifier.arx"
+            },
+            "7": {
+              "name": "keyword.operator.arx"
             }
           }
         }
@@ -269,11 +275,11 @@
       "patterns": [
         {
           "name": "keyword.control.arx",
-          "match": "\\b(?:assert|extern|import|return|class|const|while|else|then|for|var|fn|if|in)\\b"
+          "match": "\\b(?:continue|finally|assert|except|extern|import|return|break|class|const|raise|while|elif|else|then|with|for|try|var|fn|if|in)\\b"
         },
         {
           "name": "keyword.other.contextual.arx",
-          "match": "\\b(?:operator|binary|unary|from|type|as)\\b"
+          "match": "\\b(?:operator|binary|unary|auto|from|type|as)\\b"
         }
       ]
     },
@@ -288,8 +294,12 @@
     "types": {
       "patterns": [
         {
+          "name": "support.class.builtin.arx",
+          "match": "\\b(?:File)\\b"
+        },
+        {
           "name": "support.type.builtin.arx",
-          "match": "\\b(?:dataframe|timestamp|datetime|boolean|float16|float32|float64|series|string|tensor|int16|int32|int64|bool|char|date|int8|list|none|time|f16|f32|f64|i16|i32|i64|str|i8)\\b"
+          "match": "\\b(?:arrow_struct|large_binary|large_string|arrow_list|decimal128|decimal256|dictionary|fixed_list|large_list|arrow_map|dataframe|timestamp|datetime|nullable|sequence|boolean|float16|float32|float64|binary|series|string|tensor|bytes|int16|int32|int64|bool|char|date|file|int8|list|none|time|f16|f32|f64|i16|i32|i64|str|u16|u32|u64|i8|u8)\\b"
         }
       ]
     },
@@ -317,15 +327,15 @@
       "patterns": [
         {
           "name": "keyword.operator.arx",
-          "match": "(?:--|->|!=|&&|\\+\\+|<=|==|>=|\\|\\|)"
+          "match": "(?:--|-=|->|::|!=|\\*=|/=|&&|%=|\\+\\+|\\+=|<=|==|>=|\\|\\|)"
         },
         {
           "name": "keyword.operator.word.arx",
-          "match": "\\b(?:and|or)\\b"
+          "match": "\\b(?:and|not|or)\\b"
         },
         {
           "name": "keyword.operator.arx",
-          "match": "[=<>+\\-*/!|]"
+          "match": "[=<>+\\-*/%!|]"
         }
       ]
     },
@@ -333,11 +343,11 @@
       "patterns": [
         {
           "name": "support.function.builtin.arx",
-          "match": "\\b(?:(?:isinstance|dataframe|print|range|cast|type))\\b(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
+          "match": "\\b(?:(?:wrapping_cast|series_count|wrapping_add|wrapping_mul|wrapping_sub|series_mean|isinstance|series_all|series_any|series_max|series_min|series_sum|dataframe|fill_null|timestamp|datetime|is_null|bytes|print|range|cast|date|list|open|time|type|int|len|ord))\\b(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
         },
         {
           "name": "support.function.arx",
-          "match": "\\b(?!\\b(?:dataframe|timestamp|datetime|operator|boolean|float16|float32|float64|assert|binary|extern|import|return|series|string|tensor|class|const|false|int16|int32|int64|unary|while|bool|char|date|else|from|int8|list|none|then|time|true|type|and|f16|f32|f64|for|i16|i32|i64|str|var|as|fn|i8|if|in|or)\\b)(?:(?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
+          "match": "\\b(?!\\b(?:arrow_struct|large_binary|large_string|arrow_list|decimal128|decimal256|dictionary|fixed_list|large_list|arrow_map|dataframe|timestamp|continue|datetime|nullable|operator|sequence|boolean|finally|float16|float32|float64|assert|binary|except|extern|import|return|series|string|tensor|break|bytes|class|const|false|int16|int32|int64|raise|unary|while|auto|bool|char|date|elif|else|file|File|from|int8|list|none|then|time|true|type|with|and|f16|f32|f64|for|i16|i32|i64|not|str|try|u16|u32|u64|var|as|fn|i8|if|in|or|u8)\\b)(?:(?:[_\\p{L}])(?:[_\\p{L}\\p{N}])*)(?=\\s*(?:<[^>\\n]+>\\s*)?\\()"
         }
       ]
     },
